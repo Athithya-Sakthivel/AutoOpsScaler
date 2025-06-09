@@ -1,0 +1,146 @@
+# Root-level exclusions
+*.pyc
+*.pyo
+__pycache__/
+*.log
+*.swp
+*.bak
+.DS_Store
+.env
+.env.*
+
+# Python virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Byte-compiled and cache
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+.eggs/
+.cache/
+.mypy_cache/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# VS Code + dev containers
+.vscode/
+.devcontainer/.python-version
+
+# Editor & OS noise
+.idea/
+*.sublime-project
+*.sublime-workspace
+Thumbs.db
+desktop.ini
+
+# Temp scratch directory (local dev only)
+temp/
+*.tmp
+
+# Data artifacts and raw binaries
+*.tar.gz
+*.zip
+*.rar
+*.7z
+
+# Jupyter & IPython noise
+.ipynb_checkpoints/
+*.ipynb
+*.out
+
+# Node.js frontend artifacts (inference_pipeline/api/frontend)
+inference_pipeline/api/frontend/node_modules/
+inference_pipeline/api/frontend/dist/
+inference_pipeline/api/frontend/.vite/
+
+# Build/test artifacts
+build/
+dist/
+*.egg-info/
+
+# Logs and test outputs
+logs/
+*.log
+*.err
+*.out
+
+# Ignore model artifacts
+models/
+models/**
+
+# Secrets and user-level config overrides
+config/secrets_template.yaml
+!config/*.yaml  # allow other YAMLs
+!config/README.md
+
+# AWS credentials if any accidentally placed
+.aws/
+*.pem
+*.key
+*.crt
+
+# Terraform state (store this remotely instead)
+infra/terraform/.terraform/
+infra/terraform/.terraform.lock.hcl
+infra/terraform/terraform.tfstate
+infra/terraform/terraform.tfstate.*
+
+# ArgoCD Workflows cache or debug state
+workflows/.argo/
+
+# Docker local dev artifacts
+**/Dockerfile.dev
+**/docker-compose.override.yml
+
+# Ignore any backup scripts or debug outputs
+scripts/*.bak
+scripts/*_debug.py
+
+# Specific infra scratch
+infra/carvel/kapp-values/dev.yaml.bak
+infra/carvel/kapp-values/prod.yaml.bak
+
+# Exclude Ray logs unless persisted
+**/ray_results/
+**/ray_temp/
+
+# Exclude Supabase local state
+meta_store/.supabase/
+
+# Exclude kube configs from dev env
+dev/k3s-cluster.yaml
+
+# Ignore compiled TS/JS artifacts
+*.tsbuildinfo
+
+# S3 local schema test file
+dev/s3_schema.py
+
+# Ignore compiled frontend files
+*.map
+
+# Ignore LLM intermediate caches or checkpoints
+**/checkpoints/
+**/cache/
+
+# Final fallback safety: wildcard on any misplaced state, with exclusions
+**/*.bak
+**/*.tmp
+**/*.log
+
+# Allowlist needed files explicitly (if accidentally matched by globs above)
+!README.md
+!Makefile
+!.gitignore
+!requirements.txt
+
+# Ignore non-repo stuff
+.gitlab/
+.githooks/
