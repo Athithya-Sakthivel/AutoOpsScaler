@@ -1,0 +1,20 @@
+{
+  "name": "AutoOpsScaler Dev",
+  "build": {
+    "dockerfile": "./.devcontainer/Dockerfile",
+    "context": ".."  // project root (AutoOpsScaler/)
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest"
+    }
+  },
+  "postCreateCommand": "sudo usermod -aG docker $(whoami) && exec newgrp docker",
+  "mounts": [
+    "source=autoopsscaler-docker-vol,target=/var/lib/docker,type=volume"
+  ],
+  "settings": {
+    "terminal.integrated.defaultProfile.linux": "bash"
+  },
+  "remoteUser": "vscode"
+}
