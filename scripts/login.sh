@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# login.sh - Fully automated GitHub login + Git config script for Ubuntu VM
+# login.sh - Fully automated GitHub login + Git config script for Ubuntu VM (HTTPS with PAT)
 
 set -euo pipefail
 IFS=$'\n\t'
@@ -41,15 +41,22 @@ fi
 echo "$GH_PAT" | gh auth login --with-token || { err "GitHub CLI login failed. Check token."; exit 1; }
 log "GitHub CLI authenticated."
 
-# Always set Git config
+# Always set Git config for current user
 git config --global user.name "$GH_USERNAME"
 log "Git global username set to: $GH_USERNAME"
 
 git config --global user.email "$GH_EMAIL"
 log "Git global email set to: $GH_EMAIL"
 
-# Persist GitHub credentials
+# Persist GitHub credentials for HTTPS pushes (store PAT for github.com)
 git config --global credential.helper store
+
+# Store credentials for github.com (so git push never prompts)
+cat <<EOF > ~/.git-credentials
+https://$GH_USERNAME:$GH_PAT@github.com
+EOF
+
+log "GitHub credentials stored for HTTPS pushes."
 
 # Final validation
 if gh auth status >/dev/null 2>&1; then
