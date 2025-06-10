@@ -16,13 +16,13 @@ push:
 	git commit -m "update"
 	git push
 
-bootstrap-full:
+setup:
 	chmod +x scripts/bootstrap.sh && sudo bash scripts/bootstrap.sh
-	pip install -r requirements.txt
+	PIP_ROOT_USER_ACTION=ignore pip install -r requirements.txt
 
-dev-cluster:
+lc:
 	chmod +x scripts/k3s-dev-start.sh && sudo bash scripts/k3s-dev-start.sh
 
-dc-status:
+lc-status:
 	sudo k3s kubectl get nodes
 	

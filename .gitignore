@@ -9,6 +9,23 @@ __pycache__/
 .env
 .env.*
 
+
+# K3s and Kubernetes
+/var/log/k3s.log
+/etc/rancher/k3s/k3s.yaml
+*.kube/config
+*.kube/
+kubeconfig
+k3s.yaml
+
+# Logs
+*.log
+
+# System files
+*.pid
+*.sock
+
+
 # Python virtual environments
 .venv/
 venv/
