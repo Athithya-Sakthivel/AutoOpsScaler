@@ -1,7 +1,4 @@
 # AutoOpsScaler
-
-
-## STEP 1: INIT YOUR WORKSPACE
 ### ⚠️ If you are using WSL or If you're not using native Linux follow these steps
 #### These setup are essential to prevent any issues later on (Download these stable and syncing versions)
 
