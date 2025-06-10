@@ -1,36 +1,36 @@
-# .devcontainer/Dockerfile
+# syntax=docker/dockerfile:1
 
-# Pin to Ubuntu 22.04 base
 FROM ubuntu:22.04
 
-# Noninteractive APT
+# Set noninteractive frontend to avoid prompts
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Create user vscode with UID/GID=1000
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    sudo \
-    curl \
-    git \
-    tree \
-    make \
-    bash \
-    docker.io \
-    iproute2 \
-    iputils-ping \
-    ca-certificates \
-    gnupg2 \
-    gh \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Install essential tools and Python
+RUN apt-get update && apt-get install -y \
+    python3.10 python3.10-venv python3.10-dev python3-pip \
+    git curl sudo zsh locales && \
+    locale-gen en_US.UTF-8 && \
+    rm -rf /var/lib/apt/lists/*
 
-# Create vscode user and give sudo rights
-RUN useradd -m vscode && echo "vscode ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+# Set the locale
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
 
-# Volume for Docker-in-Docker
-VOLUME ["/var/lib/docker"]
+# Create vscode user
+RUN groupadd --gid 1000 vscode && \
+    useradd --uid 1000 --gid vscode --shell /bin/bash --create-home vscode && \
+    echo "vscode ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd && \
+    chmod 0440 /etc/sudoers.d/nopasswd
 
-# Default user
+# Set default user
 USER vscode
 
-# Default shell
-CMD ["bash"]
+# Set working directory
+WORKDIR /workspace/AutoOpsScaler
+
+# Copy entrypoint script if needed
+# COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+# RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
