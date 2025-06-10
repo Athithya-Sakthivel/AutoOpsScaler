@@ -1,7 +1,7 @@
 .PHONY: login pull push bootstrap
 
 login:
-	chmod +x ./scripts/login.sh
+	chmod +x scripts/login.sh
 	./scripts/login.sh
 
 pull:
