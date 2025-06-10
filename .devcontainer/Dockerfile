@@ -1,27 +1,36 @@
-# Base image pinned to Ubuntu 22.04
+# .devcontainer/Dockerfile
+
+# Pin to Ubuntu 22.04 base
 FROM ubuntu:22.04
 
-# Set noninteractive mode for APT
+# Noninteractive APT
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Minimal install: Docker daemon, CLI, networking tools
+# Create user vscode with UID/GID=1000
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    docker.io \
+    sudo \
     curl \
+    git \
+    tree \
+    make \
+    bash \
+    docker.io \
     iproute2 \
     iputils-ping \
-    make \
-    git \
+    ca-certificates \
+    gnupg2 \
     gh \
-    bash \
-    ca-certificates && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN apt update && apt install -y sudo
-# Enable Docker systemd-less (DIND v2 compatible)
+# Create vscode user and give sudo rights
+RUN useradd -m vscode && echo "vscode ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Volume for Docker-in-Docker
 VOLUME ["/var/lib/docker"]
 
-# Start shell by default (docker daemon to be started by user/script)
-CMD [ "bash" ]
+# Default user
+USER vscode
+
+# Default shell
+CMD ["bash"]
