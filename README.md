@@ -3,7 +3,7 @@
 
 
 ### ⚠️ If you are using WSL or If you're not using native Linux follow these steps
-#### These setup are essential to prevent any issues later on (download these stable and syncing versions)
+#### These setup are essential to prevent any issues later on (Download these stable and syncing versions)
 
 ---
 
@@ -27,7 +27,7 @@
 1. **Install VirtualBox 7.0.14:**  
    [Download VirtualBox for macOS](https://download.virtualbox.org/virtualbox/7.0.14/)
 
-2. **Install Vagrant via Homebrew:**
+2. **Install Vagrant via Homebrew (Ensure 2.4.3):**
 
    ```bash
    brew tap hashicorp/tap
