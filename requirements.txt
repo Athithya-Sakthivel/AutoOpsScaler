@@ -20,8 +20,12 @@ playwright==1.52.0
 unstructured==0.17.2
 trafilatura==2.0.0
 
-# Embedding & modeling
-sentence-transformers==4.1.0
+
+
+# Embedding & modeling, uncomment when needed
+# sentence-transformers==4.1.0
+
+
 
 # Utilities
 xxhash==3.5.0
