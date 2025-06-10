@@ -1,4 +1,4 @@
-.PHONY: login pull push
+.PHONY: login pull push bootstrap
 
 login:
 	chmod +x ./scripts/login.sh
@@ -15,3 +15,10 @@ push:
 	git add .
 	git commit -m "update"
 	git push
+
+bootstrap:
+	chmod +x scripts/bootstrap.sh && bash scripts/bootstrap.sh
+	python3 -m venv .venv
+	. .venv/bin/activate && pip install --upgrade pip
+	. .venv/bin/activate && pip install -r requirements.txt
+

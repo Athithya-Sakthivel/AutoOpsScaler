@@ -11,11 +11,15 @@ RUN apt-get update && \
     curl \
     iproute2 \
     iputils-ping \
+    make \
+    git \
+    gh \
     bash \
     ca-certificates && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+RUN apt update && apt install -y sudo
 # Enable Docker systemd-less (DIND v2 compatible)
 VOLUME ["/var/lib/docker"]
 

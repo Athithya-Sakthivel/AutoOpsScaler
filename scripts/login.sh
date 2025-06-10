@@ -21,13 +21,11 @@ if gh auth status >/dev/null 2>&1; then
 fi
 
 # Prompt user for inputs just once
-echo -n "Enter your GitHub username: "
-read -r GH_USERNAME
-echo -n "Enter your GitHub email: "
-read -r GH_EMAIL
-echo -n "Get your PAT if not already: https://github.com/settings/tokens/new\n"
-echo -n "Enter your GitHub Personal Access Token (PAT): "
-read -rs GH_PAT
+read -rp "Enter your GitHub username: " GH_USERNAME
+read -rp "Enter your GitHub email: " GH_EMAIL
+echo "👉 If you don't have a PAT, generate one here:"
+echo "   https://github.com/settings/tokens/new"
+read -rsp "Enter your GitHub Personal Access Token (PAT): " GH_PAT
 echo ""
 
 # Do GitHub CLI login with token
