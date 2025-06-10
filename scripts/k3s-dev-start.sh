@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -euo pipefail
 
 LOG_FILE="/var/log/k3s.log"
 K3S_BIN="/usr/local/bin/k3s"

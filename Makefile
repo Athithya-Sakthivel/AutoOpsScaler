@@ -1,8 +1,7 @@
-.PHONY: login pull push bootstrap
+.PHONY: login pull push bootstrap setup lc lc-status
 
 login:
-	chmod +x scripts/login.sh
-	./scripts/login.sh
+	bash scripts/login.sh
 
 pull:
 	git fetch --prune                    # Sync and clean remote refs
@@ -17,12 +16,12 @@ push:
 	git push
 
 setup:
-	chmod +x scripts/bootstrap.sh && sudo bash scripts/bootstrap.sh
-	PIP_ROOT_USER_ACTION=ignore pip install -r requirements.txt
+	chmod +x scripts/bootstrap.sh
+	./scripts/bootstrap.sh
+	pip install -r requirements.txt
 
 lc:
-	chmod +x scripts/k3s-dev-start.sh && sudo bash scripts/k3s-dev-start.sh
+	bash scripts/k3s-dev-start.sh
 
 lc-status:
-	sudo k3s kubectl get nodes
-	
+	k3s kubectl get nodes
