@@ -2,10 +2,20 @@
   "name": "AutoOpsScaler Dev",
   "build": {
     "dockerfile": "Dockerfile",
-    "context": "."
+    "context": ".."
   },
-  "settings": {
-    "terminal.integrated.defaultProfile.linux": "bash"
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "/usr/bin/bash",
+            "icon": "terminal-bash"
+          }
+        }
+      }
+    }
   },
   "remoteUser": "vscode",
   "mounts": [
@@ -18,3 +28,6 @@
   },
   "postCreateCommand": "make init || true"
 }
+
+
+

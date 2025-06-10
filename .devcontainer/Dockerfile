@@ -3,10 +3,9 @@
 ARG VARIANT=ubuntu-22.04
 FROM mcr.microsoft.com/devcontainers/base:${VARIANT}
 
-# Avoid interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install essential tools (extend here)
+# Install essential tools
 RUN apt-get update && apt-get install -y \
     curl \
     unzip \
@@ -14,11 +13,17 @@ RUN apt-get update && apt-get install -y \
     sudo \
     software-properties-common \
     build-essential \
+    python3 \
+    python3-pip \
+    tree \
+    gh \
+    make \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# [Optional] Set up Python (already in your devcontainer host)
-RUN sudo apt-get update && sudo apt-get install -y python3 python3-pip tree gh make
+# Ensure the vscode user exists and owns the workspace
+ARG USERNAME=vscode
+RUN if ! id -u $USERNAME >/dev/null 2>&1; then useradd -m $USERNAME; fi \
+    && chown -R $USERNAME /workspaces /home/$USERNAME
 
-# Ensure workspace ownership and default shell
-USER vscode
+USER $USERNAME
 SHELL ["/bin/bash", "-c"]
