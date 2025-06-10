@@ -20,10 +20,10 @@ RUN apt-get update && apt-get install -y \
     make \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Ensure the vscode user exists and owns the workspace
+# Ensure the vscode user exists and owns the home directory
 ARG USERNAME=vscode
 RUN if ! id -u $USERNAME >/dev/null 2>&1; then useradd -m $USERNAME; fi \
-    && chown -R $USERNAME /workspaces /home/$USERNAME
+    && chown -R $USERNAME /home/$USERNAME
 
 USER $USERNAME
 SHELL ["/bin/bash", "-c"]

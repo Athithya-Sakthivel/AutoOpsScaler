@@ -28,6 +28,3 @@
   },
   "postCreateCommand": "make init || true"
 }
-
-
-
