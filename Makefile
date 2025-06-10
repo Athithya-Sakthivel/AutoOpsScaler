@@ -16,9 +16,7 @@ push:
 	git commit -m "update"
 	git push
 
-bootstrap:
-	chmod +x scripts/bootstrap.sh && bash scripts/bootstrap.sh
-	python3 -m venv .venv
-	. .venv/bin/activate && pip install --upgrade pip
-	. .venv/bin/activate && pip install -r requirements.txt
+bootstrap-full:
+	chmod +x scripts/bootstrap.sh && sudo bash scripts/bootstrap.sh
+	pip install -r requirements.txt
 

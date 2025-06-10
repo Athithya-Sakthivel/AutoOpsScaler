@@ -90,7 +90,7 @@ fi
 # 🚀 Argo CD CLI
 echo "🚀 Installing Argo CD CLI $ARGOCD_VERSION..."
 if ! command -v argocd >/dev/null; then
-  download_with_retry "https://github.com/argoproj/argo-cd/releases/download/v${ARGOCD_VERSION}/argocd-linux-amd64" argocd
+  download_with_retry "https://github.com/argoproj/argo-cd/releases/download/${ARGOCD_VERSION}/argocd-linux-amd64" argocd
   chmod +x argocd
   sudo mv argocd /usr/local/bin/argocd
 else
@@ -100,7 +100,7 @@ fi
 # 🚀 Argo Workflows CLI
 echo "🚀 Installing Argo Workflows CLI $ARGO_WORKFLOWS_VERSION..."
 if ! command -v argo >/dev/null; then
-  download_with_retry "https://github.com/argoproj/argo-workflows/releases/download/v${ARGO_WORKFLOWS_VERSION}/argo-linux-amd64.gz" argo.gz
+  download_with_retry "https://github.com/argoproj/argo-workflows/releases/download/${ARGO_WORKFLOWS_VERSION}/argo-linux-amd64.gz" argo.gz
   gunzip argo.gz
   chmod +x argo
   sudo mv argo /usr/local/bin/argo
