@@ -20,3 +20,9 @@ bootstrap-full:
 	chmod +x scripts/bootstrap.sh && sudo bash scripts/bootstrap.sh
 	pip install -r requirements.txt
 
+dev-cluster:
+	chmod +x scripts/k3s-dev-start.sh && sudo bash scripts/k3s-dev-start.sh
+
+dc-status:
+	sudo k3s kubectl get nodes
+	
