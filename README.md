@@ -64,63 +64,75 @@ make lc
 
 ```py
 AutoOpsScaler/
-|
-├── config⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Configuration files and templates.  
-│   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Explains environment-specific config layering for CI/CD.  
-│   ├── base_config.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Centralized config shared across environments (defaults).  
-│   ├── dev_config.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Development config overriding base, with local endpoints.  
-│   ├── prod_config.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Production config overrides (secure endpoints, resources).  
-│   └── secrets_template.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Template for CI/CD or vault-managed secrets. 
-| 
-├── base_infra⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Base infrastructure code (Dev/Prod environments).  
-│   ├── dev⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Development environment infrastructure.  
-│   │   ├── observability⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Observability stack for dev environment.  
-│   │   │   ├── modules⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Modules for metrics and tracing in dev environment.  
-│   │   │   │   ├── metrics.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Prometheus metrics definitions for development monitoring.  
-│   │   │   │   └── tracing.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Tracing instrumentation for development.  
-│   │   │   ├── scripts⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Validation and linting scripts for manifests.  
-│   │   │   │   ├── kubescore.sh⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Runs kubescore on manifests to detect anti-patterns (e.g., no resource limits).  
-│   │   │   │   ├── kubeval.sh⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Validates k8s YAML manifests against schema via kubeval.  
-│   │   │   │   └── manifest_lint.sh⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Validates YAML/Helm templates using kube-linter and yamllint.  
-│   │   │   ├── Dockerfile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Docker container for development monitoring (Prometheus/Grafana).  
-│   │   │   └── ray_dev_monitoring.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Ray monitoring configuration for the dev cluster.  
-│   │   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Instructions for setting up the dev environment.  
-│   │   └── k3s-dev-start.sh⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Script to start a local k3s cluster for development.  
-│   ├── prod⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Production environment configurations.  
-│   │   ├── observability⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Observability stack for production environment.  
-│   │   │   ├── modules⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Modules for metrics and tracing in production.  
-│   │   │   │   ├── metrics.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Prometheus metrics definitions for production monitoring.  
-│   │   │   │   └── tracing.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Tracing instrumentation for production.  
-│   │   │   ├── scripts⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Validation and linting scripts for manifests.  
-│   │   │   │   ├── kubescore.sh⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Runs kubescore on manifests to detect anti-patterns (e.g., no resource limits).  
-│   │   │   │   ├── kubeval.sh⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Validates k8s YAML manifests against schema via kubeval.  
-│   │   │   │   └── manifest_lint.sh⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Validates YAML/Helm templates using kube-linter and yamllint.  
-│   │   │   ├── Dockerfile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Docker container for production monitoring (Prometheus/Grafana).  
-│   │   │   └── ray_prod_monitoring.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Ray monitoring configuration for the production cluster.  
-│   │   ├── pulumi⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Pulumi infrastructure code for production (EKS, IAM, etc).  
-│   │   │   ├── eks.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Pulumi script to provision EKS cluster.  
-│   │   │   ├── iam.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Pulumi script to configure IAM roles.  
-│   │   │   ├── karpenter.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Pulumi script to configure Karpenter autoscaling.  
-│   │   │   ├── outputs.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Pulumi outputs (exported resource information).  
-│   │   │   └── vpc.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Pulumi script to configure VPC and networking.  
-│   │   └── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Instructions for setting up the production environment.  
-│   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Overview of infrastructure configuration.  
-│   └── s3_boto3.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Python script to initialize S3 buckets/schema using boto3.
+├── config/                        #  Declarative config source-of-truth for all infra generation
+│   ├── README.md                  # Docs on config rules, schema structure, and CLI usage
+│   ├── infra_schema/              # Typed + validated Pydantic schema for each infra component
+│   │   ├── __init__.py            # Imports and exposes top-level config schema for all components
+│   │   ├── base_types.py          # Shared enums and base types (e.g., instance classes, archs, zones)
+│   │   ├── eks.py                 # EKS cluster and nodegroup schema (version, IRSA, node defaults)
+│   │   ├── vpc.py                 # VPC schema including subnets, NAT gateways, CIDR blocks
+│   │   ├── karpenter.py           # Schema for CPU/GPU/Spot provisioners and Karpenter controller
+│   │   ├── observability.py       # Schema for Prometheus scrape configs and Grafana dashboards
+│   │   └── root_schema.py         # Top-level InfraConfig schema that includes EKS, VPC, etc.
+│   ├── environments/
+│   │   ├── dev.py                 # Dev environment overrides: ports, namespaces, min nodes, etc.
+│   │   └── prod.py                # Prod overrides: resource limits, IAM trust domains, node selectors
+│   ├── secrets_template.py        # Secrets scaffolding for Vault or CI-safe injection (no plaintext secrets)
+│   └── generate_infra/            # Code generator translating config → Pulumi + manifests
+│       ├── __init__.py            # Enables `generate_infra` as a Python module
+│       ├── cli.py                 # CLI entrypoint to trigger infra generation for any environment
+│       ├── loader.py              # Merges base schema and environment overrides into runtime config
+│       ├── renderer.py            # Renders Pulumi modules and K8s manifests from validated config
+│       └── main.py                # Top-level orchestrator for config parsing and rendering logic
+│
+├── base_infra/                    # Autogenerated infrastructure (never edited manually)
+│   ├── README.md                  # Notes on this folder being fully generated from `config/`
+│   ├── pulumi/
+│   │   ├── eks/
+│   │   │   ├── cluster.py         # EKS control plane setup (version, endpoint, IRSA)
+│   │   │   ├── nodegroups.py      # Optional managed nodegroups for baseline system workloads
+│   │   │   └── __init__.py        # Exports all EKS-related infra modules
+│   │   ├── vpc/
+│   │   │   ├── network.py         # VPC + public/private subnets, NAT gateways, routes
+│   │   │   └── __init__.py        # Initializes VPC module as importable
+│   │   ├── iam/
+│   │   │   ├── roles.py           # Generic IRSA mappings for system and app workloads
+│   │   │   ├── karpenter_iam.py   # Dedicated IAM for Karpenter controller + EC2 provisioners
+│   │   │   └── __init__.py          # IAM module initializer for imports
+│   │   ├── karpenter/
+│   │   │   ├── controller.py          # Deploys Karpenter controller via Helm with IRSA
+│   │   │   ├── provisioner_cpu.py      # CPU instance provisioner (on-demand or spot)
+│   │   │   ├── provisioner_gpu.py    # GPU instance provisioner with tolerations and limits
+│   │   │   ├── provisioner_spot.py    # Optional spot instance provisioner with cost caps
+│   │   │   └── __init__.py            # Collects all provisioner modules under karpenter
+│   │   ├── observability/
+│   │   │   ├── deployment.py        # K8s manifests to deploy Prometheus + Grafana to the cluster
+│   │   │   ├── service_monitors.py   # Generates ServiceMonitor CRDs if Prometheus Operator is enabled
+│   │   │   └── __init__.py            # Observability module initializer
+│   │   ├── outputs.py                 # Final Pulumi stack exports (used by ArgoCD or GitOps glue)
+│   │   ├── pulumi_config.json        # Auto-rendered Pulumi stack config (per env) with metadata
+│   │   └── Dockerfile              # Minimal container to run Pulumi consistently in CI or local
+│
+│   ├── cluster_bootstrap.sh       # Wrapper script to bootstrap local (k3s) or AWS EKS clusters
+│   ├── regen_all.sh               # Regenerates entire `base_infra/` from `config/` for dev and prod
+│
+│   └── observability/              #  Generated monitoring assets (dashboards + scrape config)
+│       ├── Dockerfile.base_infra.dev       # Lightweight Prometheus+Grafana image for local testing
+│       ├── Dockerfile.base_infra.prod      # Hardened Prometheus+Grafana image for AWS runtime use
+│       ├── generate_monitoring.py      # Codegen for scrape configs and dashboards using env config
+│       ├── dashboards/               #  Autogenerated Grafana dashboards (per environment)
+│       └── scrape_configs.yaml     # Prometheus scrape config for kubelet, cAdvisor, etc.
+│
+└── Makefile                                             #  Unified entrypoint for validate/build/deploy workflows                                  
 |  
-├── storage⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Local storage for data, models, and backups.  
-│   ├── data⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Data files and backups.
-│   │   └── raw⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Raw data files.
-│   │   ├── processed⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Processed data files.  
-│   │   │   ├── chunked⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Chunked data files.  
-│   │   │   └── parsed⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Parsed data files.  
-│   │   ├── db_backups⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Database backup files.  
-│   │   │   ├── qdrant_backups⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Qdrant database backups.  
-│   │   │   └── supabase_backups⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Supabase database backups.  
-│   │   ├── observability⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Observability data.  
-│   ├── llms⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# LLM and embedding model storage.  
-│   │   ├── mistral⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Mistral model files.  
-│   │   └── sentence_transformers⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# SentenceTransformers model files.   
-|
+├── utils⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Utility functions and helpers.  
+│   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Documentation for utility functions.  
+│   ├── __init__.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Marks the utils package as a Python module.  
+│   ├── config_loader.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Loads layered config from `config/` directory.  
+│   ├── deduplicator.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Uses xxhash to deduplicate documents, etc  
+│   ├── logger.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Centralized structured logging utility.  
+│   └── s3_util.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# S3 upload/download helper (boto3).  
+|  
 ├── extract_load⠀⠀⠀⠀⠀⠀⠀⠀ # All raw files are stored in s3://<bucket>/data/raw/ to return the original S3 URLs during RAG inference.
 │   ├── generated⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated manifests for extract&load pipeline.  
 │   │   ├── EL_rayjob_v1.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated RayJob manifest for extract&load (v1).  
@@ -132,7 +144,7 @@ AutoOpsScaler/
 │   │   ├── llamaindex_loader.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Loads docs via LlamaIndex connectors and dedudplication via xxhash 
 │   │   ├── main.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Orchestrates extract pipeline via Ray Workflows.  
 │   │   ├── s3_uploader.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Uploads raw docs to S3 (boto3).  
-│   │   └── scraper.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Web scraper (Scrapy+Playwright) with error tracing and dedudplication via xxhash
+│   │   └── scraper.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Web scraper (Scrapy+Playwright) and dedudplication via xxhash
 │   ├── Dockerfile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Container spec for extract-load (no GPU).  
 │   ├── app-extract-load.argocd.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Argo CD manifest for extract-load pipeline.  
 │   └── dynamic_RayJob_generator.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generates RayJob manifests dynamically for extract/load.  
@@ -267,14 +279,6 @@ AutoOpsScaler/
 │   │   │       └── search.py            # Accepts query, performs vector search, returns chunk + original S3 URL.
 │   └── README.md                        # Documentation for inference pipeline, API endpoints, and frontend usage.
 |
-├── scripts⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Project scripts.  
-│   ├── benchmark_pipeline.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# End-to-end pipeline benchmark (latency, throughput).  
-│   ├── bootstrap.sh⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Initial setup and bootstrap script for environment.  
-│   ├── login.sh⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Script to authenticate to required services or registries.  
-│   ├── manifest_lint.sh⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Validates YAML/Helm templates using kube-linter and yamllint.  
-│   ├── seed_data.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# One-time data seeder for metadata/embedding population.  
-│   └── stress_test.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Load tester to push high volume through the pipeline.  
-|
 ├── tests⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Test suite.  
 │   ├── __init__.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Makes tests a Python module.  
 │   ├── conftest.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Shared pytest fixtures (mock clients, Ray).  
@@ -283,21 +287,31 @@ AutoOpsScaler/
 │   ├── test_ingestion.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Tests for ingestion (parsing and upload logic).  
 │   ├── test_rag.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Tests for RAG retriever and generator.  
 │   └── test_vector.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Tests for Qdrant vector upsert/query logic.
-|  
-├── utils⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Utility functions and helpers.  
-│   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Documentation for utility functions.  
-│   ├── __init__.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Marks the utils package as a Python module.  
-│   ├── config_loader.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Loads layered config from `config/` directory.  
-│   ├── deduplicator.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Uses xxhash to deduplicate documents.  
-│   ├── logger.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Centralized structured logging utility.  
-│   └── s3_utils.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# S3 upload/download helper (boto3).  
+│   └── env_check.sh                # Checks versions, PATH, and k3s/kubectl health
+|
+├── storage⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Local storage for data, models, and backups.  
+│   ├── data⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Data files and backups.
+│   │   └── raw⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Raw data files.
+│   │   ├── processed⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Processed data files.  
+│   │   │   ├── chunked⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Chunked data files.  
+│   │   │   └── parsed⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Parsed data files.  
+│   │   ├── db_backups⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Database backup files.  
+│   │   │   ├── qdrant_backups⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Qdrant database backups.  
+│   │   │   └── supabase_backups⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Supabase database backups.  
+│   │   ├── observability⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Observability data.  
+│   ├── llms⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# LLM and embedding model storage.  
+│       ├── mistral⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Mistral model files.  
+│       └── sentence_transformers⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# SentenceTransformers model files.   
 |
 ├── .dockerignore⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Docker exclusion file to prevent building unnecessary files.  
 ├── .gitignore⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Git exclusion file to prevent committing irrelevant files.  
-├── Makefile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# LowOps commands for development (cluster setup, deployment, etc).  
 ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# High-level documentation describing architecture and usage.  
 ├── Vagrantfile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Vagrant configuration for local development environment.  
 └── requirements.txt⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Python dependencies (Ray, FastAPI, etc).  
 
 ```
 
+
+
+vagrant@ubuntu-jammy:/vagrant$ make tree
+\tree -a --prune -I '.git|.vagrant|__pycache__|.pulumi|.mypy_cache|.pytest_cache|.venv|.vscode' --dirsfirst -L 5
