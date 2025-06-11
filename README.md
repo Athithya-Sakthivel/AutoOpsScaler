@@ -1,14 +1,54 @@
-# AutoOpsScaler blueprint 
+# Table of Contents
 
-````python
-AutoOpsScaler/ 
-├── .github⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# GitHub configuration directory.  
-│   └── workflows⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# GitHub Actions workflows directory.  
-│       ├── build_and_push.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Build & push Docker images.  
-│       ├── ci.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# CI workflow configuration (ruff, typecheck, pytest).  
-│       ├── data_pipeline.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# CI workflow for data preprocessing pipeline.  
-│       ├── inference_pipeline.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# CI workflow for inference pipeline.  
-│       └── sync_argocd.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Trigger ArgoCD sync via REST API  
+
+- [Install the Required Tools in This Order and Restart Your System](#install-the-required-tools-in-this-order-and-restart-your-system)
+  - [Windows](#windows)
+  - [macOS](#macos)
+- [Git Config (Before Cloning)](#git-config-before-cloning)
+- [AutoOpsScaler Architecture](#autoopsscaler-architecture)
+
+---
+
+## Install the Required Tools in This Order and Restart Your System
+
+> ⚠️ **Native Linux is strongly recommended** for full Kubernetes compatibility.  
+> If you're using **WSL** or a **Dev Container**, follow these steps exactly to avoid issues.
+
+### Windows
+
+- [Git for Windows](https://git-scm.com/downloads/win)
+- [Visual C++ Redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe)
+- [VirtualBox 7.0.14](https://download.virtualbox.org/virtualbox/7.0.14/VirtualBox-7.0.14-161095-Win.exe)
+- [Vagrant 2.4.3](https://releases.hashicorp.com/vagrant/2.4.3/vagrant_2.4.3_windows_amd64.msi)
+
+### macOS
+- [Git for macOS](https://git-scm.com/downloads/mac)
+- [VirtualBox 7.0.14](https://download.virtualbox.org/virtualbox/7.0.14/)
+- [Vagrant 2.4.3](https://developer.hashicorp.com/vagrant/downloads) ← install **2.4.3 only**
+
+---
+
+## Git Config (Before Cloning)
+
+Run this in **Git Bash** or any shell before cloning to prevent line ending and permission issues:
+
+```bash
+git config --global core.autocrlf input
+git config --global core.eol lf
+git config --global core.fileMode false
+git config --global safecrlf true
+
+git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler.git
+cd AutoOpsScaler
+code .
+```
+
+---
+
+## AutoOpsScaler Architecture
+
+```py
+AutoOpsScaler/
 |
 ├── config⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Configuration files and templates.  
 │   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Explains environment-specific config layering for CI/CD.  
@@ -246,47 +286,5 @@ AutoOpsScaler/
 ├── Vagrantfile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Vagrant configuration for local development environment.  
 └── requirements.txt⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Python dependencies (Ray, FastAPI, etc).  
 
-
-
-````
-
-
-
-
-
-
-
-
-
-## Install the required tools in this order and restart your system
-> ⚠️ Native Linux is strongly recommended for full Kubernetes compatibility.  
-> If you're using **WSL** or a **Dev Container**, follow these steps exactly to avoid issues.
-Windows:
-- https://git-scm.com/downloads/win
-- https://aka.ms/vs/17/release/vc_redist.x64.exe
-- https://download.virtualbox.org/virtualbox/7.0.14/VirtualBox-7.0.14-161095-Win.exe
-- https://releases.hashicorp.com/vagrant/2.4.3/vagrant_2.4.3_windows_amd64.msi  
-  
-  
-macOS 
-- https://download.virtualbox.org/virtualbox/7.0.14/
-- https://developer.hashicorp.com/vagrant/downloads   # Install vagrant 2.4.3 only
-
-##  Git Config (Before Cloning) to prevent dos2unix conversions, open git bash and enter these and close the terminal
-
 ```
-git config --global core.autocrlf false  
-git config --global core.fileMode false  
-git config --global core.eol lf
-git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler.git && cd AutoOpsScaler && code .
-
-```
-
-### (Optional) Adjust RAM/CPU in Vagrantfile — default is 11GB RAM and 6 CPUs  
-```
-vagrant up  
-vagrant reload   # Apply Docker group permissions  
-vagrant ssh  
-```
-
 
