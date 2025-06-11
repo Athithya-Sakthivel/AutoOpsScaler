@@ -42,7 +42,7 @@ vagrant ssh
 
 # Blueprint
 
-````py
+````sh
 AutoOpsScaler/ 
 ├── .github⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# GitHub configuration directory.  
 │   └── workflows⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# GitHub Actions workflows directory.  
