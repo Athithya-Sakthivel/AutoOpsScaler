@@ -1,5 +1,15 @@
-
 # AutoOpsScaler 
+**AutoOpsScaler** is a LowOps platform that standardizes GenAI backend workflows — delivering a reproducible, Kubernetes-native stack for document RAG and agent inference, with built-in observability, Ray orchestration, and CI-friendly deployments that align LLM developers and infra teams to be production ready from day one.
+
+- **Kubernetes-native**: uses RayJob CRDs, ArgoCD GitOps.
+- **End-to-end pipelines**: extract & load → preprocessing → embedding → inference.
+- **Built-in observability**: Grafana, Prometheus, Langfuse, RAGAS metrics.
+- **CI/CD-ready**: GitHub Actions workflows for build/test/deploy.
+- **Idempotent & Resilient**: designed to re-run cleanly; robust error handling.
+- **Extensible**: modular code structure for custom loaders, parsers, metrics.
+- **Storage**: S3, Qdrant, Supabase integration.
+- **Infra as Code**: Pulumi/Terraform for provisioning clusters, IAM, VPC, autoscaling (Karpenter).
+
 
 # Blueprint
 
