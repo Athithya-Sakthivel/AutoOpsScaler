@@ -272,19 +272,14 @@ macOS
 - https://download.virtualbox.org/virtualbox/7.0.14/
 - https://developer.hashicorp.com/vagrant/downloads   # Install vagrant 2.4.3 only
 
-##  Git Config (Before Cloning) to prevent dos2unix conversions
+##  Git Config (Before Cloning) to prevent dos2unix conversions, open git bash and enter these and close the terminal
 
 ```
 git config --global core.autocrlf false  
 git config --global core.fileMode false  
 git config --global core.eol lf
-```
+git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler.git && cd AutoOpsScaler && code .
 
-## Setup Instructions
-
-```
-git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler.git && cd AutoOpsScaler 
- 
 ```
 
 ### (Optional) Adjust RAM/CPU in Vagrantfile — default is 11GB RAM and 6 CPUs  
