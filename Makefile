@@ -14,7 +14,7 @@ push:
 	git add .
 	git commit -m "update"
 	git push
-
+	
 setup-dev:
 	chmod +x scripts/bootstrap.sh
 	./scripts/bootstrap.sh
