@@ -10,20 +10,12 @@ __pycache__/
 .env.*
 .vagrant/
 
-# ---- For data/ directory: track directories, ignore files ----
-/data/**
-!/data/**/
 
-# ---- For llms/ directory: track directories, ignore files ----
-/llms/**
-!/llms/**/
+# Ignore everything under storage/
+storage/**
 
-
-# Ignore all files under data/
-/data/**
-
-# But allow all directories under data/ to be tracked
-!/data/**/
+# Re-include all directories under storage/
+!storage/**/
 
 
 # Always use LF for shell scripts

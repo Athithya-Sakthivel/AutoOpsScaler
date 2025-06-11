@@ -22,13 +22,15 @@ k3s.yaml
 *.log
 
 
-# ---- For data/ directory: track directories, ignore files ----
-/data/**
-!/data/**/
+# ─── Ignore everything under storage/data/ ───
+/storage/data/*
+!/storage/data/**/
+!*/                      # Include directories only
 
-# ---- For llms/ directory: track directories, ignore files ----
-/llms/**
-!/llms/**/
+# ─── Ignore everything under storage/llms/ ───
+/storage/llms/*
+!/storage/llms/**/
+!*/                      # Include directories only
 
 
 # System files
