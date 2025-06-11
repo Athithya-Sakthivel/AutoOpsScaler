@@ -11,8 +11,12 @@ __pycache__/
 .vagrant/
 
 
+# Ignore all files under storage/
 storage/**/*
+
+# Do not ignore directories
 !storage/**/
+!storage/
 
 
 # Always use LF for shell scripts
