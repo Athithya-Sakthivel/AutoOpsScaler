@@ -58,7 +58,7 @@ make lc
 ```
 ### 🔧 Dev Engineer Note
 
-#### Always run `vagrant ssh` in a every terminal.  
+#### Always run `vagrant ssh` in a new terminal.  
 #### Before exiting or rebooting system, run `vagrant halt` for faster restarts
 
 # AutoOpsScaler Architecture
