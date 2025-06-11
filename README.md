@@ -259,11 +259,11 @@ AutoOpsScaler/
 
 
 
-> ⚠️ Native Linux is strongly recommended for full Kubernetes compatibility.  
-> If you're using **WSL** or a **Dev Container**, follow these steps exactly to avoid issues.
+
 
 ## Install the required tools in this order and restart your system
-
+> ⚠️ Native Linux is strongly recommended for full Kubernetes compatibility.  
+> If you're using **WSL** or a **Dev Container**, follow these steps exactly to avoid issues.
 Windows:
 - https://git-scm.com/downloads/win
 - https://aka.ms/vs/17/release/vc_redist.x64.exe
