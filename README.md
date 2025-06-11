@@ -42,106 +42,103 @@ vagrant ssh
 
 # Blueprint
 
-```
+````py
 AutoOpsScaler/ 
-├── .github/
-│   └── workflows/
-│       ├── ci.yaml                                  # ruff, typecheck, pytest
-│       ├── build_and_push.yaml                     # Build & push Docker images
-│       └── sync_argocd.yaml                        # Trigger ArgoCD sync via REST API
-|
-├── .gitignore                           # Git exclusion file to prevent committing sensitive or irrelevant files.
-├── .dockerignore                        # Docker exclusion file to prevent building unnecessary files into images.
-├── Makefile                             # LowOps commands for devs like make create-prod-cluster, make deploy-indexing-pipeline, etc.
-├── README.md                            # High-level documentation describing architecture, domains, and usage instructions.
-├── requirements.txt                     # List of runtime dependencies for Python including Ray, FastAPI, Pathlib, and parsing tools.
-
-├── dev/
-│   ├── k3s-cluster.yaml                 # k3s cluster config for local testing of multi-node clusters with PVCs.
-│   ├── s3_schema.py                     # Uses boto3 to create bucket with the right schema like data/raw/, data/parsed/, data/chunked/, etc.
-│   └── README.md                        # Describes how to set up local dev environment using k3s, and simulate S3 schema.
-|
-├── config/
-│   ├── base_config.yaml                 # Centralized config shared across environments (e.g., default paths, timeouts).
-│   ├── dev_config.yaml                  # Local development config that overrides base, includes local endpoint URIs (e.g., S3).
-│   ├── prod_config.yaml                 # Production-specific overrides, including secure endpoints and resource constraints.
-│   ├── secrets_template.yaml            # Template for secret keys/envs to be filled in CI/CD or secure vault integrations.
-│   └── README.md                        # Explains environment-specific config layering and secure secrets injection for CI/CD.
-|
-├── utils/
-│   ├── __init__.py                      # Marks the utils package for internal Python module resolution.
-│   ├── config_loader.py                 # Utility to load layered config from `config/` directory with environment awareness.
-│   ├── logger.py                        # Centralized structured logging utility using standard `logging`, integrates with observability.
-│   ├── s3_utils.py                      # Wrapper around `boto3` for uploading/downloading docs to S3.
-│   ├── deduplicator.py                  # Uses `xxhash` to deduplicate file extraction, parsing, chunking, etc.
-│   └── README.md                        # Documents utility functions for config management, logging, S3 I/O, and deduplication logic.
-|
-├── extract_load/                        # All raw files are stored in s3://<bucket>/data/raw/ to return original S3 URLs during RAG inference.
-│   ├── Dockerfile                       # Container spec for document loaders/scrapers; no GPU required.
-│   ├── dynamic_RayJob_generator.py      # Generates RayJob manifests dynamically based on environment
-│   ├── dynamic_StatefulSet_generator.py # Generates StatefulSet manifests for persistent services
-│   ├── app-extract-load.argocd.yaml     # Argo CD Application manifest for GitOps sync of extract-load pipeline.
-│   └── modules/
-│       ├── __init__.py                  # Declares extract_load as Python module.
-│       ├── file_watcher.py              # Watches S3/local folders for new input files; add logging, but no external observability needed.
-│       ├── llamaindex_loader.py         # Loads documents via LlamaIndex connectors; add Langfuse tracing for large or slow docs.
-│       ├── scraper.py                   # Web scraper using Scrapy + Playwright; should log errors and emit trace spans due to failure-prone
-│       ├── s3_uploader.py               # Uploads raw docs to S3 with boto3; latency metrics via Prometheus can help detect bottlenecks.
-│       ├── main.py      # Orchestrates entire extract pipeline using Ray Workflows; wrap stages with Langfuse spans for visibility.
-│       └── README.md                    # Docs for extract-load flow covering loaders, scrapers, and S3 uploader.
-|
-├── data_preprocessing/
-│   ├── Dockerfile                       # Container for document preprocessing: parsing, OCR, chunking, dedup.
-│   ├── dynamic_RayJob_generator.py      # Generates RayJob manifests dynamically based on environment
-│   ├── dynamic_StatefulSet_generator.py # Generates StatefulSet manifests for persistent services
-│   ├── app-data-preprocess.argocd.yaml  # Argo CD Application manifest for GitOps sync of data preprocessing pipeline.
-│   └── modules/
-│       ├── __init__.py                  # Declares data_preprocessing as a Python module.
-│       ├── chunker_llamaindex.py        # Splits text into chunks using LlamaIndex splitters; lightweight, but should emit latency metrics.
-│       ├── doc_parser.py                # Parses files via unstructured.io; add Langfuse spans to trace parser perf/errors.
-│       ├── html_parser.py               # Parses HTML with trafilatura; may benefit from logging for malformed docs.
-│       ├── format_normalizer.py         # Cleans text and metadata; emit chunk count and cleaning ratio as Prometheus metrics.
-│       ├── filters.py                   # Filters out junk/boilerplate; should record chunk retention ratio for tuning.
-│       ├── main.py       # Orchestrates full preprocessing pipeline using Ray Workflows; wrap with Langfuse/OpenLLMetry for full traceability.
-│       └── README.md                    # Docs covering parsing strategies, chunking configs, and filtering heuristics.
-|
-├── embedding/
-│   ├── Dockerfile                       # Builds container for embedding pipeline using Ray Serve workers.
-│   ├── dynamic_RayJob_generator.py      # Generates RayJob manifests dynamically based on environment
-│   ├── dynamic_RayService_generator.py  # Generates RayService manifests for API deployments
-│   ├── dynamic_StatefulSet_generator.py # Generates StatefulSet manifests for persistent services
-│   ├── app-embedding.argocd.yaml        # Argo CD Application manifest for GitOps sync of embedding pipeline.
-│   └── modules/
-│       ├── __init__.py                  # Marks modules as a Python package.
-│       ├── batch_embed.py               # Orchestrates batch embedding flow using Ray Workflows; should include Prometheus metrics.
-│       ├── model_loader.py              # Loads SentenceTransformer models; ideal point for Langfuse tracing.
-│       ├── worker.py                    # Embedding logic in Ray tasks; should emit Langfuse/OpenLLMetry spans.
-│       └── main.py                      # Entry-point script; should init observability and start Ray tasks.
-|
-├── vector_db/
-│   ├── Dockerfile                       # Builds container for vector storage pipelines to Qdrant.
-│   ├── dynamic_RayJob_generator.py      # Generates RayJob manifests dynamically based on environment
-│   ├── dynamic_StatefulSet_generator.py # Generates StatefulSet manifests for persistent services
-│   ├── app-vector.argocd.yaml           # Argo CD Application manifest for GitOps sync of Qdrant vector ingestion.
-│   └── modules/
-│       ├── __init__.py                  # Marks modules as a Python package.
-│       ├── embed_to_qdrant.py           # Pushes embeddings to Qdrant; should emit latency metrics.
-│       ├── qdrant_client.py             # Qdrant client wrapper; key place to monitor search latency.
-│       ├── query_qdrant.py              # Query logic for similarity search; candidate for Prometheus + Langfuse.
-│       ├── schema.json                  # Qdrant collection schema; static config file for schema enforcement.
-│       └── main.py                      # Entry-point for Qdrant interaction; should include metrics and tracing.
-|
-├── meta_store/
-│   ├── Dockerfile                       # Builds container for Supabase-backed metadata ops.
-│   ├── dynamic_RayJob_generator.py      # Generates RayJob manifests dynamically based on environment
-│   ├── dynamic_StatefulSet_generator.py # Generates StatefulSet manifests for persistent services
-│   ├── app-supabase.argocd.yaml         # Argo CD Application manifest for GitOps sync of Supabase metadata tasks.
-│   └── modules/
-│       ├── __init__.py                  # Marks modules as a Python package.
-│       ├── insert_metadata.py           # Inserts doc metadata; should log structured data for traceability.
-│       ├── query_metadata.py            # Fetches metadata via Supabase; should expose latency metrics.
-│       └── supabase_client.py           # Supabase client logic; a hook point for error tracking and metrics.
-|
+├── .github⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# GitHub configuration directory.  
+│   └── workflows⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# GitHub Actions workflows directory.  
+│       ├── build_and_push.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Build & push Docker images.  
+│       ├── ci.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# CI workflow configuration (ruff, typecheck, pytest).  
+│       ├── data_pipeline.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# CI workflow for data preprocessing pipeline.  
+│       ├── inference_pipeline.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# CI workflow for inference pipeline.  
+│       └── sync_argocd.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Trigger ArgoCD sync via REST API  
+├── base_infra⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Base infrastructure code (Dev/Prod environments).  
+│   ├── dev⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Development environment infrastructure.  
+│   │   ├── observability⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Observability stack for dev environment.  
+│   │   │   ├── modules⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Modules for metrics and tracing in dev environment.  
+│   │   │   │   ├── metrics.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Prometheus metrics definitions for development monitoring.  
+│   │   │   │   └── tracing.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Tracing instrumentation for development.  
+│   │   │   ├── scripts⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Validation and linting scripts for manifests.  
+│   │   │   │   ├── kubescore.sh⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Runs kubescore on manifests to detect anti-patterns (e.g., no resource limits).  
+│   │   │   │   ├── kubeval.sh⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Validates k8s YAML manifests against schema via kubeval.  
+│   │   │   │   └── manifest_lint.sh⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Validates YAML/Helm templates using kube-linter and yamllint.  
+│   │   │   ├── Dockerfile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Docker container for development monitoring (Prometheus/Grafana).  
+│   │   │   └── ray_dev_monitoring.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Ray monitoring configuration for the dev cluster.  
+│   │   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Instructions for setting up the dev environment.  
+│   │   └── k3s-dev-start.sh⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Script to start a local k3s cluster for development.  
+│   ├── prod⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Production environment configurations.  
+│   │   ├── observability⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Observability stack for production environment.  
+│   │   │   ├── modules⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Modules for metrics and tracing in production.  
+│   │   │   │   ├── metrics.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Prometheus metrics definitions for production monitoring.  
+│   │   │   │   └── tracing.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Tracing instrumentation for production.  
+│   │   │   ├── scripts⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Validation and linting scripts for manifests.  
+│   │   │   │   ├── kubescore.sh⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Runs kubescore on manifests to detect anti-patterns (e.g., no resource limits).  
+│   │   │   │   ├── kubeval.sh⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Validates k8s YAML manifests against schema via kubeval.  
+│   │   │   │   └── manifest_lint.sh⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Validates YAML/Helm templates using kube-linter and yamllint.  
+│   │   │   ├── Dockerfile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Docker container for production monitoring (Prometheus/Grafana).  
+│   │   │   └── ray_prod_monitoring.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Ray monitoring configuration for the production cluster.  
+│   │   ├── pulumi⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Pulumi infrastructure code for production (EKS, IAM, etc).  
+│   │   │   ├── eks.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Pulumi script to provision EKS cluster.  
+│   │   │   ├── iam.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Pulumi script to configure IAM roles.  
+│   │   │   ├── karpenter.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Pulumi script to configure Karpenter autoscaling.  
+│   │   │   ├── outputs.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Pulumi outputs (exported resource information).  
+│   │   │   └── vpc.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Pulumi script to configure VPC and networking.  
+│   │   └── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Instructions for setting up the production environment.  
+│   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Overview of infrastructure configuration.  
+│   └── s3_boto3.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Python script to initialize S3 buckets/schema using boto3.  
+├── config⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Configuration files and templates.  
+│   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Explains environment-specific config layering for CI/CD.  
+│   ├── base_config.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Centralized config shared across environments (defaults).  
+│   ├── dev_config.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Development config overriding base, with local endpoints.  
+│   ├── prod_config.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Production config overrides (secure endpoints, resources).  
+│   └── secrets_template.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Template for CI/CD or vault-managed secrets.  
+├── data_preprocessing⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Data preprocessing pipeline code.  
+│   ├── generated⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated manifests for data preprocessing.  
+│   │   ├── dp_rayjob_v1.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated RayJob manifest for data preprocessing (v1).  
+│   │   └── dp_rayjob_v2.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated RayJob manifest for data preprocessing (v2).  
+│   ├── modules⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Data preprocessing modules.  
+│   │   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Docs covering parsing strategies and filtering heuristics.  
+│   │   ├── __init__.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Declares data_preprocessing as a Python module.  
+│   │   ├── chunker_llamaindex.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Splits text into chunks (LlamaIndex); emits latency metrics.  
+│   │   ├── doc_parser.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Parses documents (unstructured.io); adds tracing on performance.  
+│   │   ├── filters.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Filters out junk/boilerplate; records chunk retention ratio.  
+│   │   ├── format_normalizer.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Cleans text/metadata; emits chunk count and clean ratio metrics.  
+│   │   ├── html_parser.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Parses HTML (trafilatura); logs malformed doc issues.  
+│   │   └── main.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Orchestrates full preprocessing pipeline via Ray Workflows.  
+│   ├── Dockerfile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Container for document preprocessing (OCR, chunking, dedup).  
+│   ├── app-data-preprocess.argocd.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Argo CD manifest for data preprocessing pipeline.  
+│   └── dynamic_RayJob_generator.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generates RayJob manifests dynamically for this pipeline.  
+├── embedding⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Embedding pipeline code.  
+│   ├── generated⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated manifests for embedding pipeline.  
+│   │   ├── em_rayjob_v1.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated RayJob manifest for embedding pipeline (v1).  
+│   │   └── em_rayjob_v2.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated RayJob manifest for embedding pipeline (v2).  
+│   ├── modules⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Embedding pipeline modules.  
+│   │   ├── __init__.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Marks modules as a Python package.  
+│   │   ├── batch_embed.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Orchestrates batch embedding via Ray Workflows (with metrics).  
+│   │   ├── main.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Entry-point for embedding tasks; initializes observability.  
+│   │   ├── model_loader.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Loads SentenceTransformer models; instrumented for tracing.  
+│   │   └── worker.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Embeds text in Ray tasks; emits performance spans.  
+│   ├── Dockerfile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Builds container for embedding pipeline using Ray.  
+│   ├── app-embedding.argocd.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Argo CD manifest for embedding pipeline.  
+│   └── dynamic_RayJob_generator.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generates RayJob manifests dynamically for embedding.  
+├── extract_load⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Data extraction and loading pipeline.  
+│   ├── generated⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated manifests for extract&load pipeline.  
+│   │   ├── EL_rayjob_v1.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated RayJob manifest for extract&load (v1).  
+│   │   └── EL_rayjob_v2.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated RayJob manifest for extract&load (v2).  
+│   ├── modules⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Extract/load modules.  
+│   │   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Docs for extract-load flow (loaders, scrapers).  
+│   │   ├── __init__.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Declares extract_load as Python module.  
+│   │   ├── file_watcher.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Watches S3/local folders for new input files.  
+│   │   ├── llamaindex_loader.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Loads docs via LlamaIndex connectors.  
+│   │   ├── main.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Orchestrates extract pipeline via Ray Workflows.  
+│   │   ├── s3_uploader.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Uploads raw docs to S3 (boto3).  
+│   │   └── scraper.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Web scraper (Scrapy+Playwright) with error tracing.  
+│   ├── Dockerfile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Container spec for extract-load (no GPU).  
+│   ├── app-extract-load.argocd.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Argo CD manifest for extract-load pipeline.  
+│   └── dynamic_RayJob_generator.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generates RayJob manifests dynamically for extract/load.  
+├── fine_tuning⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Fine-tuning pipeline code.  
+│   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Documentation for fine-tuning procedures.  
+│   ├── dynamic_RayJob_generator.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generates RayJob manifests dynamically for fine-tuning.  
+│   └── fine_tune.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Script to fine-tune a model.  
 ├── inference_pipeline/
 │   ├── rag/
 │   │   ├── Dockerfile                   # Container to serve full RAG pipeline with Haystack + FastAPI.
@@ -206,57 +203,84 @@ AutoOpsScaler/
 │   │   │       └── search.py            # Accepts query, performs vector search, returns chunk + original S3 URL.
 │   └── README.md                        # Documentation for inference pipeline, API endpoints, and frontend usage.
 |
-├── orchestrator/
-│   ├── Dockerfile                       # Container spec for long-running Ray Serve orchestrator API handling jobs across modules.
-│   ├── dynamic_RayService_generator.py  # Generates RayService manifests for API deployments
-│   ├── app-orchestrator.argocd.yaml     # Argo CD Application manifest for GitOps sync of orchestrator service.
-│   └── modules/
-│       ├── __init__.py                  # Declares orchestrator as a Python module.
-│       ├── deployment_utils.py          # Utilities for launching/stopping RayJobs, RayServices; indirectly relies on cluster observability.
-│       ├── ray_job_manager.py           # Manages lifecycle of RayJobs via Ray client API; emits metrics/traces for job status.
-│       └── ray_serve_manager.py         # Controls Ray Serve deployments (for API microservices); traced by Langfuse or Ray metrics endpoints.
-|
-├── monitoring/
-│   ├── Dockerfile                       # Container for observability stack: exposes Prometheus/Grafana/Langfuse dashboards.
-│   ├── dynamic_RayService_generator.py  # Generates RayService manifests for API deployments
-│   └── modules/
-│       ├── __init__.py                  # Declares monitoring as a Python package.
-│       ├── metrics.py                   # Prometheus metrics collection, pushing app-level and infra-level counters to central scraper.
-│       ├── tracing.py                   # Langfuse or OpenLLMetry tracer logic to capture spans across ingestion/embedding/pipeline stages.
-│       └── dashboard_configs/
-│           ├── grafana_dashboard.json   # Prebuilt Grafana dashboard config to visualize Prometheus metrics (LLM latency, load, S3 IO etc).
-│           └── ray_dashboard.yaml       # Ray dashboard custom panels and overrides (actor memory, job health, etc).
-|
-├── infra/
-│   └── terraform/                      # Terraform for cloud provisioning (Carvel removed)
-│       ├── eks.tf                      # EKS cluster with Karpenter for node autoscaler, node groups, IAM roles for S3/Qdrant 
-│       ├── karpenter.tf                # Adds Karpenter CRDs, controller, provisioners with taints/labels for Ray workloads.
-│       ├── main.tf                      # Terraform entrypoint stitching together all cloud resources needed for this stack.
-│       ├── outputs.tf                   # Outputs all relevant EKS, S3, Ray, and Supabase endpoints.
-│       ├── ray.tf                       # Provisions Ray head + worker nodegroups with tagging and observability enabled.
-│       ├── s3.tf                        # Creates versioned S3 buckets for raw docs, embeddings, and parsed chunks.
-│       └── variables.tf                 # Declares env vars (e.g., cluster_name, region, GPU flag) used throughout terraform modules.
-|
-├── scripts/
-│   ├── benchmark_pipeline.py            # End-to-end benchmark of pipeline performance (latency, throughput); uses Prometheus + logs.
-│   ├── kubeval.sh                       # Shell script to validate all k8s YAML manifests against openapi schema via kubeval.
-│   ├── kubescore.sh                     # Runs kubescore on manifests to detect anti-patterns (e.g., no resource limits).
-│   ├── manifest_lint.sh                 # Validates YAML/Helm (now Carvel) templates using kube-linter and yamllint.
-│   ├── seed_data.py                     # One-time data seeder for initial metadata/embedding DB population; logs batch status.
-│   └── stress_test.py                   # Load tester to push high volume through RAG/inference; tracked by Grafana + Langfuse.
-|
-├── tests/
-│   ├── __init__.py                      # Makes tests a discoverable Python module for pytest discovery.
-│   ├── conftest.py                      # Shared fixtures for pytest (e.g. mock clients, temp S3 paths, Ray mocks).
-│   ├── test_api.py                      # Unit tests and integration checks for orchestrator API (Ray Serve endpoints).
-│   ├── test_embedding.py                # Tests embedding workers, batch encoding, model loading correctness.
-│   ├── test_ingestion.py                # Tests parsing/upload logic across ingestion module (mock file types + edge cases).
-│   ├── test_rag.py                      # Verifies retriever + generator correctness across RAG pipeline module.
-│   └── test_vector.py                   # Tests for Qdrant vector upsert/query logic, schema conformity.
-|
-├── models/                              # Store embedding models, LLMs, and other large files here
-│   ├── sentence_transformers/           # SentenceTransformers models for embedding
-│   └── llms/                            # LLMs for generation (e.g., mistral, llama, etc)
-|   
-└── temp/                                # Temporary files for local dev, not committed to git
-```
+├── postgres⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Supabase/Postgres metadata service code.  
+│   ├── generated⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated manifests for Supabase service.  
+│   │   ├── supabase_StatefulSet_pvc_svc_v1.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated Supabase StatefulSet/PVC/Service manifest (v1).  
+│   │   └── supabase_StatefulSet_pvc_svc_v2.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated Supabase StatefulSet/PVC/Service manifest (v2).  
+│   ├── modules⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Supabase service modules.  
+│   │   ├── __init__.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# (module marker)  
+│   │   ├── insert_metadata.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Inserts document metadata into Supabase.  
+│   │   ├── query_metadata.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Fetches metadata from Supabase.  
+│   │   └── supabase_client.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Supabase client logic for DB operations.  
+│   ├── Dockerfile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Container for Supabase metadata operations.  
+│   ├── app-supabase.argocd.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Argo CD manifest for Supabase service.  
+│   └── dynamic_StatefulSet_pvc_svc_generator.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generates StatefulSet/PVC/Service manifests for Supabase.  
+├── scripts⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Project scripts.  
+│   ├── benchmark_pipeline.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# End-to-end pipeline benchmark (latency, throughput).  
+│   ├── bootstrap.sh⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Initial setup and bootstrap script for environment.  
+│   ├── login.sh⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Script to authenticate to required services or registries.  
+│   ├── manifest_lint.sh⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Validates YAML/Helm templates using kube-linter and yamllint.  
+│   ├── seed_data.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# One-time data seeder for metadata/embedding population.  
+│   └── stress_test.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Load tester to push high volume through the pipeline.  
+├── storage⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Local storage for data, models, and backups.  
+│   ├── data⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Data files and backups.  
+│   │   ├── db_backups⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Database backup files.  
+│   │   │   ├── qdrant_backups⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Qdrant database backups.  
+│   │   │   └── supabase_backups⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Supabase database backups.  
+│   │   ├── observability⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Observability data.  
+│   │   │   └── .gitkeep  
+│   │   ├── processed⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Processed data files.  
+│   │   │   ├── chunked⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Chunked data files.  
+│   │   │   │   └── .gitkeep  
+│   │   │   └── parsed⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Parsed data files.  
+│   │   │       └── .gitkeep  
+│   │   └── raw⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Raw data files.  
+│   │       └── .gitkeep  
+│   ├── llms⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# LLM and embedding model storage.  
+│   │   ├── mistral⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Mistral model files.  
+│   │   │   └── .gitkeep  
+│   │   └── sentence_transformers⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# SentenceTransformers model files.  
+│   │       └── .gitkeep  
+│   └── .gitkeep  
+├── tests⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Test suite.  
+│   ├── __init__.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Makes tests a Python module.  
+│   ├── conftest.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Shared pytest fixtures (mock clients, Ray).  
+│   ├── test_api.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Unit tests for API endpoints.  
+│   ├── test_embedding.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Tests for embedding workers and model loading.  
+│   ├── test_ingestion.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Tests for ingestion (parsing and upload logic).  
+│   ├── test_rag.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Tests for RAG retriever and generator.  
+│   └── test_vector.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Tests for Qdrant vector upsert/query logic.  
+├── utils⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Utility functions and helpers.  
+│   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Documentation for utility functions.  
+│   ├── __init__.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Marks the utils package as a Python module.  
+│   ├── config_loader.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Loads layered config from `config/` directory.  
+│   ├── deduplicator.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Uses xxhash to deduplicate documents.  
+│   ├── logger.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Centralized structured logging utility.  
+│   └── s3_utils.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# S3 upload/download helper (boto3).  
+├── vector_db⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Qdrant vector database pipeline.  
+│   ├── generated⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated Qdrant deployment manifests.  
+│   │   ├── qdrant_StatefulSet_pvc_svc_v1.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated Qdrant StatefulSet/PVC/Service manifest (v1).  
+│   │   └── qdrant_StatefulSet_pvc_svc_v2.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated Qdrant StatefulSet/PVC/Service manifest (v2).  
+│   ├── modules⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Qdrant pipeline modules.  
+│   │   ├── __init__.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Marks modules as a Python package.  
+│   │   ├── embed_to_qdrant.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Pushes embeddings to Qdrant; emits latency metrics.  
+│   │   ├── main.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Entry-point for Qdrant interaction; includes metrics/tracing.  
+│   │   ├── qdrant_client.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Qdrant client wrapper; monitors search latency.  
+│   │   ├── query_qdrant.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Similarity search query logic.  
+│   │   └── schema.json⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Qdrant collection schema.  
+│   ├── Dockerfile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Builds container for Qdrant ingestion pipeline.  
+│   ├── app-vector.argocd.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Argo CD manifest for Qdrant ingestion.  
+│   └── dynamic_StatefulSet_pvc_svc_generator.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generates StatefulSet/PVC/Service manifests for Qdrant.  
+├── .dockerignore⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Docker exclusion file to prevent building unnecessary files.  
+├── .gitignore⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Git exclusion file to prevent committing irrelevant files.  
+├── Makefile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# LowOps commands for development (cluster setup, deployment, etc).  
+├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# High-level documentation describing architecture and usage.  
+├── Vagrantfile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Vagrant configuration for local development environment.  
+└── requirements.txt⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Python dependencies (Ray, FastAPI, etc).  
+
+````
+
+
+
+
+
