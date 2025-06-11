@@ -33,13 +33,12 @@
 > Run this in **Git Bash** to prevent dos2unix issues 
 
 ```bash
-git config --global core.autocrlf input
-git config --global core.eol lf
-git config --global core.fileMode false
-git config --global safecrlf true
-
-git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler.git
-cd AutoOpsScaler
+git config --global core.autocrlf input && \
+git config --global core.eol lf && \
+git config --global core.fileMode false && \
+git config --global core.safecrlf true && \
+git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler.git && \
+cd AutoOpsScaler && \
 code .
 ```
 ### open a terminal in vscode and enter these
