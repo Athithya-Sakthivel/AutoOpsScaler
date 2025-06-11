@@ -140,6 +140,21 @@ AutoOpsScaler/
 │   ├── app-embedding.argocd.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Argo CD manifest for embedding pipeline.  
 │   └── dynamic_RayJob_generator.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generates RayJob manifests dynamically for embedding.  
 |
+├── vector_db⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Qdrant vector database pipeline.  
+│   ├── generated⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated Qdrant deployment manifests.  
+│   │   ├── qdrant_StatefulSet_pvc_svc_v1.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated Qdrant StatefulSet/PVC/Service manifest (v1).  
+│   │   └── qdrant_StatefulSet_pvc_svc_v2.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated Qdrant StatefulSet/PVC/Service manifest (v2).  
+│   ├── modules⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Qdrant pipeline modules.  
+│   │   ├── __init__.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Marks modules as a Python package.  
+│   │   ├── embed_to_qdrant.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Pushes embeddings to Qdrant; emits latency metrics.  
+│   │   ├── main.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Entry-point for Qdrant interaction; includes metrics/tracing.  
+│   │   ├── qdrant_client.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Qdrant client wrapper; monitors search latency.  
+│   │   ├── query_qdrant.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Similarity search query logic.  
+│   │   └── schema.json⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Qdrant collection schema.  
+│   ├── Dockerfile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Builds container for Qdrant ingestion pipeline.  
+│   ├── app-vector.argocd.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Argo CD manifest for Qdrant ingestion.  
+│   └── dynamic_StatefulSet_pvc_svc_generator.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generates StatefulSet/PVC/Service manifests for Qdrant.  
+|
 ├── postgres⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Supabase/Postgres metadata service code.  
 │   ├── generated⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated manifests for Supabase service.  
 │   │   ├── supabase_StatefulSet_pvc_svc_v1.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated Supabase StatefulSet/PVC/Service manifest (v1).  
