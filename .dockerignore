@@ -21,6 +21,16 @@ k3s.yaml
 # Logs
 *.log
 
+
+# ---- For data/ directory: track directories, ignore files ----
+/data/**
+!/data/**/
+
+# ---- For llms/ directory: track directories, ignore files ----
+/llms/**
+!/llms/**/
+
+
 # System files
 *.pid
 *.sock
