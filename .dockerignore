@@ -21,16 +21,8 @@ k3s.yaml
 # Logs
 *.log
 
-
-# ─── Ignore everything under storage/data/ ───
-/storage/data/*
-!/storage/data/**/
-!*/                      # Include directories only
-
-# ─── Ignore everything under storage/llms/ ───
-/storage/llms/*
-!/storage/llms/**/
-!*/                      # Include directories only
+storage/**/*
+!storage/**/
 
 
 # System files
