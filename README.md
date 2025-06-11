@@ -84,13 +84,31 @@ AutoOpsScaler/
 │   │   │   └── vpc.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Pulumi script to configure VPC and networking.  
 │   │   └── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Instructions for setting up the production environment.  
 │   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Overview of infrastructure configuration.  
-│   └── s3_boto3.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Python script to initialize S3 buckets/schema using boto3.  
+│   └── s3_boto3.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Python script to initialize S3 buckets/schema using boto3.
+|  
 ├── config⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Configuration files and templates.  
 │   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Explains environment-specific config layering for CI/CD.  
 │   ├── base_config.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Centralized config shared across environments (defaults).  
 │   ├── dev_config.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Development config overriding base, with local endpoints.  
 │   ├── prod_config.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Production config overrides (secure endpoints, resources).  
-│   └── secrets_template.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Template for CI/CD or vault-managed secrets.  
+│   └── secrets_template.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Template for CI/CD or vault-managed secrets. 
+| 
+├── extract_load⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Data extraction and loading pipeline.  
+│   ├── generated⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated manifests for extract&load pipeline.  
+│   │   ├── EL_rayjob_v1.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated RayJob manifest for extract&load (v1).  
+│   │   └── EL_rayjob_v2.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated RayJob manifest for extract&load (v2).  
+│   ├── modules⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Extract/load modules.  
+│   │   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Docs for extract-load flow (loaders, scrapers).  
+│   │   ├── __init__.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Declares extract_load as Python module.  
+│   │   ├── file_watcher.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Watches S3/local folders for new input files.  
+│   │   ├── llamaindex_loader.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Loads docs via LlamaIndex connectors.  
+│   │   ├── main.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Orchestrates extract pipeline via Ray Workflows.  
+│   │   ├── s3_uploader.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Uploads raw docs to S3 (boto3).  
+│   │   └── scraper.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Web scraper (Scrapy+Playwright) with error tracing.  
+│   ├── Dockerfile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Container spec for extract-load (no GPU).  
+│   ├── app-extract-load.argocd.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Argo CD manifest for extract-load pipeline.  
+│   └── dynamic_RayJob_generator.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generates RayJob manifests dynamically for extract/load.  
+|
 ├── data_preprocessing⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Data preprocessing pipeline code.  
 │   ├── generated⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated manifests for data preprocessing.  
 │   │   ├── dp_rayjob_v1.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated RayJob manifest for data preprocessing (v1).  
@@ -107,6 +125,7 @@ AutoOpsScaler/
 │   ├── Dockerfile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Container for document preprocessing (OCR, chunking, dedup).  
 │   ├── app-data-preprocess.argocd.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Argo CD manifest for data preprocessing pipeline.  
 │   └── dynamic_RayJob_generator.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generates RayJob manifests dynamically for this pipeline.  
+|
 ├── embedding⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Embedding pipeline code.  
 │   ├── generated⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated manifests for embedding pipeline.  
 │   │   ├── em_rayjob_v1.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated RayJob manifest for embedding pipeline (v1).  
@@ -120,25 +139,27 @@ AutoOpsScaler/
 │   ├── Dockerfile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Builds container for embedding pipeline using Ray.  
 │   ├── app-embedding.argocd.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Argo CD manifest for embedding pipeline.  
 │   └── dynamic_RayJob_generator.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generates RayJob manifests dynamically for embedding.  
-├── extract_load⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Data extraction and loading pipeline.  
-│   ├── generated⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated manifests for extract&load pipeline.  
-│   │   ├── EL_rayjob_v1.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated RayJob manifest for extract&load (v1).  
-│   │   └── EL_rayjob_v2.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated RayJob manifest for extract&load (v2).  
-│   ├── modules⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Extract/load modules.  
-│   │   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Docs for extract-load flow (loaders, scrapers).  
-│   │   ├── __init__.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Declares extract_load as Python module.  
-│   │   ├── file_watcher.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Watches S3/local folders for new input files.  
-│   │   ├── llamaindex_loader.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Loads docs via LlamaIndex connectors.  
-│   │   ├── main.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Orchestrates extract pipeline via Ray Workflows.  
-│   │   ├── s3_uploader.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Uploads raw docs to S3 (boto3).  
-│   │   └── scraper.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Web scraper (Scrapy+Playwright) with error tracing.  
-│   ├── Dockerfile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Container spec for extract-load (no GPU).  
-│   ├── app-extract-load.argocd.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Argo CD manifest for extract-load pipeline.  
-│   └── dynamic_RayJob_generator.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generates RayJob manifests dynamically for extract/load.  
+|
+├── postgres⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Supabase/Postgres metadata service code.  
+│   ├── generated⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated manifests for Supabase service.  
+│   │   ├── supabase_StatefulSet_pvc_svc_v1.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated Supabase StatefulSet/PVC/Service manifest (v1).  
+│   │   └── supabase_StatefulSet_pvc_svc_v2.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated Supabase StatefulSet/PVC/Service manifest (v2). 
+|   | 
+│   ├── modules⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Supabase service modules.  
+│   │   ├── __init__.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# (module marker)  
+│   │   ├── insert_metadata.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Inserts document metadata into Supabase.  
+│   │   ├── query_metadata.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Fetches metadata from Supabase.  
+│   │   └── supabase_client.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Supabase client logic for DB operations.  
+|   |
+│   ├── Dockerfile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Container for Supabase metadata operations.  
+│   ├── app-supabase.argocd.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Argo CD manifest for Supabase service.  
+│   └── dynamic_StatefulSet_pvc_svc_generator.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generates StatefulSet/PVC/Service manifests for Supabase.  
+
 ├── fine_tuning⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Fine-tuning pipeline code.  
 │   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Documentation for fine-tuning procedures.  
 │   ├── dynamic_RayJob_generator.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generates RayJob manifests dynamically for fine-tuning.  
-│   └── fine_tune.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Script to fine-tune a model.  
+│   └── fine_tune.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Script to fine-tune a model.
+|  
 ├── inference_pipeline/
 │   ├── rag/
 │   │   ├── Dockerfile                   # Container to serve full RAG pipeline with Haystack + FastAPI.
@@ -151,6 +172,7 @@ AutoOpsScaler/
 │   │       ├── generator.py             # Calls LLM for response; must log Langfuse spans and token usage.
 │   │       ├── pipeline.py              # End-to-end orchestration logic for RAG using Ray Workflows; should be traced and metered.
 │   │       └── retriever.py             # Vector + metadata search; should emit QPS and latency metrics.
+|
 │   ├── evaluation/
 │   │   ├── Dockerfile                   # Container for RAG evaluation service using RAGAS.
 │   │   ├── dynamic_RayJob_generator.py  # Generates RayJob manifests dynamically based on environment
@@ -178,6 +200,7 @@ AutoOpsScaler/
 │   │   │       │   └── Login.tsx        # Login page using Supabase OAuth/JWT
 │   │   │       └── styles/
 │   │   │           └── main.css         # Tailwind or custom CSS
+|   |    |     
 │   │   ├── backend/                     # Ray Serve backend API handling search, embedding, generation, health, etc.
 │   │   │   ├── Dockerfile               # Backend Dockerfile, installs Ray, FastAPI, Supabase, etc.
 │   │   │   ├── dynamic_RayService_generator.py # Generates RayService manifests for API deployments
@@ -203,18 +226,6 @@ AutoOpsScaler/
 │   │   │       └── search.py            # Accepts query, performs vector search, returns chunk + original S3 URL.
 │   └── README.md                        # Documentation for inference pipeline, API endpoints, and frontend usage.
 |
-├── postgres⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Supabase/Postgres metadata service code.  
-│   ├── generated⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated manifests for Supabase service.  
-│   │   ├── supabase_StatefulSet_pvc_svc_v1.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated Supabase StatefulSet/PVC/Service manifest (v1).  
-│   │   └── supabase_StatefulSet_pvc_svc_v2.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated Supabase StatefulSet/PVC/Service manifest (v2).  
-│   ├── modules⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Supabase service modules.  
-│   │   ├── __init__.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# (module marker)  
-│   │   ├── insert_metadata.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Inserts document metadata into Supabase.  
-│   │   ├── query_metadata.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Fetches metadata from Supabase.  
-│   │   └── supabase_client.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Supabase client logic for DB operations.  
-│   ├── Dockerfile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Container for Supabase metadata operations.  
-│   ├── app-supabase.argocd.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Argo CD manifest for Supabase service.  
-│   └── dynamic_StatefulSet_pvc_svc_generator.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generates StatefulSet/PVC/Service manifests for Supabase.  
 ├── scripts⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Project scripts.  
 │   ├── benchmark_pipeline.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# End-to-end pipeline benchmark (latency, throughput).  
 │   ├── bootstrap.sh⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Initial setup and bootstrap script for environment.  
@@ -242,6 +253,7 @@ AutoOpsScaler/
 │   │   └── sentence_transformers⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# SentenceTransformers model files.  
 │   │       └── .gitkeep  
 │   └── .gitkeep  
+|
 ├── tests⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Test suite.  
 │   ├── __init__.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Makes tests a Python module.  
 │   ├── conftest.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Shared pytest fixtures (mock clients, Ray).  
@@ -249,7 +261,8 @@ AutoOpsScaler/
 │   ├── test_embedding.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Tests for embedding workers and model loading.  
 │   ├── test_ingestion.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Tests for ingestion (parsing and upload logic).  
 │   ├── test_rag.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Tests for RAG retriever and generator.  
-│   └── test_vector.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Tests for Qdrant vector upsert/query logic.  
+│   └── test_vector.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Tests for Qdrant vector upsert/query logic.
+|  
 ├── utils⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Utility functions and helpers.  
 │   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Documentation for utility functions.  
 │   ├── __init__.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Marks the utils package as a Python module.  
@@ -257,26 +270,15 @@ AutoOpsScaler/
 │   ├── deduplicator.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Uses xxhash to deduplicate documents.  
 │   ├── logger.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Centralized structured logging utility.  
 │   └── s3_utils.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# S3 upload/download helper (boto3).  
-├── vector_db⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Qdrant vector database pipeline.  
-│   ├── generated⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated Qdrant deployment manifests.  
-│   │   ├── qdrant_StatefulSet_pvc_svc_v1.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated Qdrant StatefulSet/PVC/Service manifest (v1).  
-│   │   └── qdrant_StatefulSet_pvc_svc_v2.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated Qdrant StatefulSet/PVC/Service manifest (v2).  
-│   ├── modules⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Qdrant pipeline modules.  
-│   │   ├── __init__.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Marks modules as a Python package.  
-│   │   ├── embed_to_qdrant.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Pushes embeddings to Qdrant; emits latency metrics.  
-│   │   ├── main.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Entry-point for Qdrant interaction; includes metrics/tracing.  
-│   │   ├── qdrant_client.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Qdrant client wrapper; monitors search latency.  
-│   │   ├── query_qdrant.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Similarity search query logic.  
-│   │   └── schema.json⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Qdrant collection schema.  
-│   ├── Dockerfile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Builds container for Qdrant ingestion pipeline.  
-│   ├── app-vector.argocd.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Argo CD manifest for Qdrant ingestion.  
-│   └── dynamic_StatefulSet_pvc_svc_generator.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generates StatefulSet/PVC/Service manifests for Qdrant.  
+|
 ├── .dockerignore⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Docker exclusion file to prevent building unnecessary files.  
 ├── .gitignore⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Git exclusion file to prevent committing irrelevant files.  
 ├── Makefile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# LowOps commands for development (cluster setup, deployment, etc).  
 ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# High-level documentation describing architecture and usage.  
 ├── Vagrantfile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Vagrant configuration for local development environment.  
 └── requirements.txt⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Python dependencies (Ray, FastAPI, etc).  
+
+
 
 ````
 
