@@ -3,7 +3,7 @@ Vagrant.configure("2") do |config|
   config.vm.box_version = "20241002.0.0"
 
   config.vm.network "private_network", ip: "192.168.56.51"
-  config.ssh.insert_key = false
+  # comment removed config.ssh.insert_key
   config.vm.boot_timeout = 1800
 
   config.vm.provision "shell", inline: <<-SHELL
