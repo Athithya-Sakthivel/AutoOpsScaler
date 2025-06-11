@@ -42,7 +42,6 @@ Vagrant.configure("2") do |config|
     echo "[*] Setting default login directory for vagrant..."
     grep -qxF 'cd /vagrant' /home/vagrant/.bashrc || echo 'cd /vagrant' >> /home/vagrant/.bashrc
     chown vagrant:vagrant /home/vagrant/.bashrc
-
     echo "[*] Cleaning up..."
     apt-get clean
     rm -rf /var/lib/apt/lists/*
