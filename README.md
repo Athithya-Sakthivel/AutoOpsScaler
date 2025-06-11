@@ -30,7 +30,7 @@
 
 ## Git Config (Before Cloning)
 
-Run this in **Git Bash** or any shell before cloning to prevent line ending and permission issues:
+> Run this in **Git Bash** to prevent dos2unix issues 
 
 ```bash
 git config --global core.autocrlf input
@@ -42,10 +42,26 @@ git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler.git
 cd AutoOpsScaler
 code .
 ```
-
+### open a terminal in vscode and enter these
+```py
+vagrant up 
+vagrant reload --no-provision   # Restart VM to apply user group changes (e.g., docker) without re-running provision script
+vagrant ssh
+```
 ---
 
-## AutoOpsScaler Architecture
+### Login to your github account, install the neccessary tools and create a local k3s cluster
+```
+make login
+make setup-dev
+make lc
+```
+### 🔧 Dev Engineer Note
+
+#### Always run `vagrant ssh` in a every terminal.  
+#### Before exiting or rebooting system, run `vagrant halt` for faster restarts
+
+# AutoOpsScaler Architecture
 
 ```py
 AutoOpsScaler/

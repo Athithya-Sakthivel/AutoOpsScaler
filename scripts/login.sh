@@ -8,10 +8,24 @@ IFS=$'\n\t'
 # Logging helpers
 log() { echo -e "\e[32m[+]\e[0m $1"; }
 err() { echo -e "\e[31m[!]\e[0m $1" >&2; }
-
 # Dependency check
 command -v gh >/dev/null 2>&1 || { err "Missing gh CLI. Install with: sudo apt install gh"; exit 1; }
 command -v git >/dev/null 2>&1 || { err "Missing Git. Install with: sudo apt install git"; exit 1; }
+sed -i 's/^#force_color_prompt=yes/force_color_prompt=yes/' /home/vagrant/.bashrc
+
+# Add useful aliases and color support
+cat << 'EOF' >> /home/vagrant/.bashrc
+
+# Custom prompt and colorized output
+export LS_OPTIONS="--color=auto"
+alias ls="ls $LS_OPTIONS"
+alias ll="ls -alF"
+alias la="ls -A"
+alias l="ls -CF"
+EOF
+
+chown vagrant:vagrant /home/vagrant/.bashrc
+
 
 # Accept arguments or environment variables, or prompt if missing
 GH_USERNAME="${1:-${GH_USERNAME:-}}"
