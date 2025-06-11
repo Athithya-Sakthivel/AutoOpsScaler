@@ -15,16 +15,13 @@ Vagrant.configure("2") do |config|
   # Provision block: strict idempotency, edge-case resilient
   config.vm.provision "shell", inline: <<-SHELL
     set -euo pipefail
-
     export DEBIAN_FRONTEND=noninteractive
 
-    # Essential packages
+    echo "[*] Ensuring all essential packages are installed..."
     REQUIRED_PKGS=(
       curl unzip lsb-release sudo software-properties-common
       build-essential python3 python3-pip tree gh make lsof fuse-overlayfs
     )
-
-    echo "[*] Ensuring all essential packages are installed..."
     for pkg in "${REQUIRED_PKGS[@]}"; do
       dpkg -s "$pkg" >/dev/null 2>&1 || apt-get install -y "$pkg"
     done
@@ -42,6 +39,11 @@ Vagrant.configure("2") do |config|
     echo "[*] Enabling and starting Docker..."
     systemctl is-enabled docker >/dev/null 2>&1 || systemctl enable docker
     systemctl is-active docker >/dev/null 2>&1 || systemctl start docker
+
+    echo "[*] Setting default login directory to /vagrant for user 'vagrant'..."
+    PROFILE_LINE='cd /vagrant'
+    grep -qxF "$PROFILE_LINE" /home/vagrant/.bashrc || echo "$PROFILE_LINE" >> /home/vagrant/.bashrc
+    chown vagrant:vagrant /home/vagrant/.bashrc
 
     echo "[*] Cleaning up..."
     apt-get clean
