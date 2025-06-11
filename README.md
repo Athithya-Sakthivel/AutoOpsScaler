@@ -1,44 +1,5 @@
 
-# AutoOpsScaler (Vagrant Dev Environment)
-
-> ⚠️ Native Linux is strongly recommended for full Kubernetes compatibility.  
-> If you're using **WSL** or a **Dev Container**, follow these steps exactly to avoid issues.
-
-## Install the required tools in this order and restart your system
-
-Windows:
-- https://git-scm.com/downloads/win
-- https://aka.ms/vs/17/release/vc_redist.x64.exe
-- https://download.virtualbox.org/virtualbox/7.0.14/VirtualBox-7.0.14-161095-Win.exe
-- https://releases.hashicorp.com/vagrant/2.4.3/vagrant_2.4.3_windows_amd64.msi  
-  
-  
-macOS 
-- https://download.virtualbox.org/virtualbox/7.0.14/
-- https://developer.hashicorp.com/vagrant/downloads   # Install vagrant 2.4.3 only
-
-##  Git Config (Before Cloning) to prevent dos2unix conversions
-
-```
-git config --global core.autocrlf false  
-git config --global core.fileMode false  
-git config --global core.eol lf
-```
-
-## Setup Instructions
-
-```
-git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler.git && cd AutoOpsScaler 
- 
-```
-
-### (Optional) Adjust RAM/CPU in Vagrantfile — default is 11GB RAM and 6 CPUs  
-```
-vagrant up  
-vagrant reload   # Apply Docker group permissions  
-vagrant ssh  
-```
-
+# AutoOpsScaler 
 
 # Blueprint
 
@@ -294,5 +255,46 @@ AutoOpsScaler/
 
 
 
+
+
+
+
+> ⚠️ Native Linux is strongly recommended for full Kubernetes compatibility.  
+> If you're using **WSL** or a **Dev Container**, follow these steps exactly to avoid issues.
+
+## Install the required tools in this order and restart your system
+
+Windows:
+- https://git-scm.com/downloads/win
+- https://aka.ms/vs/17/release/vc_redist.x64.exe
+- https://download.virtualbox.org/virtualbox/7.0.14/VirtualBox-7.0.14-161095-Win.exe
+- https://releases.hashicorp.com/vagrant/2.4.3/vagrant_2.4.3_windows_amd64.msi  
+  
+  
+macOS 
+- https://download.virtualbox.org/virtualbox/7.0.14/
+- https://developer.hashicorp.com/vagrant/downloads   # Install vagrant 2.4.3 only
+
+##  Git Config (Before Cloning) to prevent dos2unix conversions
+
+```
+git config --global core.autocrlf false  
+git config --global core.fileMode false  
+git config --global core.eol lf
+```
+
+## Setup Instructions
+
+```
+git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler.git && cd AutoOpsScaler 
+ 
+```
+
+### (Optional) Adjust RAM/CPU in Vagrantfile — default is 11GB RAM and 6 CPUs  
+```
+vagrant up  
+vagrant reload   # Apply Docker group permissions  
+vagrant ssh  
+```
 
 
