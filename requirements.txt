@@ -1,39 +1,42 @@
 # Core framework & server
-fastapi==0.115.12
-uvicorn==0.34.3
-pydantic==2.11.5
-python-dotenv==1.1.0
+fastapi
+uvicorn
+pydantic
+python-dotenv
 
 # Distributed compute & serving
-ray==2.46.0
-ray[serve]==2.46.0
+ray
+ray[serve]
 
 # Storage & I/O
-boto3==1.38.33
-qdrant-client==1.14.2
-supabase==2.15.2
+boto3
+qdrant-client
+supabase
 
 # Parsing & extraction
-llama-index==0.12.41
-scrapy==2.13.2
-playwright==1.52.0
-unstructured==0.17.2
-trafilatura==2.0.0
+llama-index
+scrapy
+playwright
+unstructured
+trafilatura
 
-
-
-# Embedding & modeling, uncomment when needed
-# sentence-transformers==4.1.0
-
-
+# Embedding & modeling
+# sentence-transformers
 
 # Utilities
-xxhash==3.5.0
-sqlalchemy==2.0.41
-prometheus-client==0.22.1
-langfuse==3.0.0
-opentelemetry-sdk==1.34.0
+xxhash
+sqlalchemy
+prometheus-client
+langfuse
+opentelemetry-sdk
+opentelemetry-api
+opentelemetry-exporter-otlp
+opentelemetry-instrumentation-fastapi
+opentelemetry-instrumentation-logging
+openllmetry
+ragas
+langchain
 
 # Testing
-pytest==8.4.0
-httpx==0.28.1
+pytest
+httpx

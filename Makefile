@@ -1,4 +1,4 @@
-.PHONY: login pull push bootstrap setup lc lc-status
+.PHONY: login pull push full-bootstrap setup lc lc-status
 
 login:
 	bash scripts/login.sh
@@ -15,11 +15,10 @@ push:
 	git commit -m "update"
 	git push
 	
-setup-dev:
+full-bootstrap:
 	chmod +x scripts/bootstrap.sh
 	./scripts/bootstrap.sh
-	pip install -r requirements.txt
-	PYTHONPATH=$(pwd)
+	pip install -r requirements.txt --upgrade
 
 lc:
 	bash scripts/k3s-dev-start.sh
