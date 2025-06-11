@@ -32,17 +32,12 @@ git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler.git && cd AutoOpsS
  
 ```
 
-# (Optional) Adjust RAM/CPU in Vagrantfile — default is 11GB RAM and 6 CPUs  
+### (Optional) Adjust RAM/CPU in Vagrantfile — default is 11GB RAM and 6 CPUs  
 ```
 vagrant up  
 vagrant reload   # Apply Docker group permissions  
 vagrant ssh  
 ```
-## 🔁 Notes
-
-- Scripts use LF (Unix) line endings — do not edit with CRLF-based editors (e.g., Notepad).  
-- Docker and essential tools are automatically provisioned in the VM.
-
 
 
 # Blueprint
