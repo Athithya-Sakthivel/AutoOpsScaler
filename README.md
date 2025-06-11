@@ -51,6 +51,14 @@ AutoOpsScaler/
 │       ├── data_pipeline.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# CI workflow for data preprocessing pipeline.  
 │       ├── inference_pipeline.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# CI workflow for inference pipeline.  
 │       └── sync_argocd.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Trigger ArgoCD sync via REST API  
+|
+├── config⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Configuration files and templates.  
+│   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Explains environment-specific config layering for CI/CD.  
+│   ├── base_config.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Centralized config shared across environments (defaults).  
+│   ├── dev_config.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Development config overriding base, with local endpoints.  
+│   ├── prod_config.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Production config overrides (secure endpoints, resources).  
+│   └── secrets_template.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Template for CI/CD or vault-managed secrets. 
+| 
 ├── base_infra⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Base infrastructure code (Dev/Prod environments).  
 │   ├── dev⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Development environment infrastructure.  
 │   │   ├── observability⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Observability stack for dev environment.  
@@ -86,14 +94,21 @@ AutoOpsScaler/
 │   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Overview of infrastructure configuration.  
 │   └── s3_boto3.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Python script to initialize S3 buckets/schema using boto3.
 |  
-├── config⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Configuration files and templates.  
-│   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Explains environment-specific config layering for CI/CD.  
-│   ├── base_config.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Centralized config shared across environments (defaults).  
-│   ├── dev_config.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Development config overriding base, with local endpoints.  
-│   ├── prod_config.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Production config overrides (secure endpoints, resources).  
-│   └── secrets_template.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Template for CI/CD or vault-managed secrets. 
-| 
-├── extract_load⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Data extraction and loading pipeline.  
+├── storage⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Local storage for data, models, and backups.  
+│   ├── data⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Data files and backups.
+│   │   └── raw⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Raw data files.
+│   │   ├── processed⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Processed data files.  
+│   │   │   ├── chunked⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Chunked data files.  
+│   │   │   └── parsed⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Parsed data files.  
+│   │   ├── db_backups⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Database backup files.  
+│   │   │   ├── qdrant_backups⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Qdrant database backups.  
+│   │   │   └── supabase_backups⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Supabase database backups.  
+│   │   ├── observability⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Observability data.  
+│   ├── llms⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# LLM and embedding model storage.  
+│   │   ├── mistral⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Mistral model files.  
+│   │   └── sentence_transformers⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# SentenceTransformers model files.   
+|
+├── extract_load⠀⠀⠀⠀⠀⠀⠀⠀ # All raw files are stored in s3://<bucket>/data/raw/ to return the original S3 URLs during RAG inference.
 │   ├── generated⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated manifests for extract&load pipeline.  
 │   │   ├── EL_rayjob_v1.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated RayJob manifest for extract&load (v1).  
 │   │   └── EL_rayjob_v2.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated RayJob manifest for extract&load (v2).  
@@ -101,15 +116,15 @@ AutoOpsScaler/
 │   │   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Docs for extract-load flow (loaders, scrapers).  
 │   │   ├── __init__.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Declares extract_load as Python module.  
 │   │   ├── file_watcher.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Watches S3/local folders for new input files.  
-│   │   ├── llamaindex_loader.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Loads docs via LlamaIndex connectors.  
+│   │   ├── llamaindex_loader.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Loads docs via LlamaIndex connectors and dedudplication via xxhash 
 │   │   ├── main.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Orchestrates extract pipeline via Ray Workflows.  
 │   │   ├── s3_uploader.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Uploads raw docs to S3 (boto3).  
-│   │   └── scraper.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Web scraper (Scrapy+Playwright) with error tracing.  
+│   │   └── scraper.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Web scraper (Scrapy+Playwright) with error tracing and dedudplication via xxhash
 │   ├── Dockerfile⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Container spec for extract-load (no GPU).  
 │   ├── app-extract-load.argocd.yaml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Argo CD manifest for extract-load pipeline.  
 │   └── dynamic_RayJob_generator.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generates RayJob manifests dynamically for extract/load.  
 |
-├── data_preprocessing⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Data preprocessing pipeline code.  
+├── data_preprocessing⠀ # Any file type in s3://<bucket>/storage/data/raw/ will be autodetected via unstructured.io and be parsed
 │   ├── generated⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated manifests for data preprocessing.  
 │   │   ├── dp_rayjob_v1.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated RayJob manifest for data preprocessing (v1).  
 │   │   └── dp_rayjob_v2.yml⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generated RayJob manifest for data preprocessing (v2).  
@@ -173,7 +188,7 @@ AutoOpsScaler/
 ├── fine_tuning⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Fine-tuning pipeline code.  
 │   ├── README.md⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Documentation for fine-tuning procedures.  
 │   ├── dynamic_RayJob_generator.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Generates RayJob manifests dynamically for fine-tuning.  
-│   └── fine_tune.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Script to fine-tune a model.
+│   └── fine_tune.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Script to fine-tune a model via  Qlora/DeepSpeed and saved in s3://<bucket>/storage/data/raw/
 |  
 ├── inference_pipeline/
 │   ├── rag/
@@ -187,7 +202,7 @@ AutoOpsScaler/
 │   │       ├── generator.py             # Calls LLM for response; must log Langfuse spans and token usage.
 │   │       ├── pipeline.py              # End-to-end orchestration logic for RAG using Ray Workflows; should be traced and metered.
 │   │       └── retriever.py             # Vector + metadata search; should emit QPS and latency metrics.
-|
+|   |
 │   ├── evaluation/
 │   │   ├── Dockerfile                   # Container for RAG evaluation service using RAGAS.
 │   │   ├── dynamic_RayJob_generator.py  # Generates RayJob manifests dynamically based on environment
@@ -215,7 +230,7 @@ AutoOpsScaler/
 │   │   │       │   └── Login.tsx        # Login page using Supabase OAuth/JWT
 │   │   │       └── styles/
 │   │   │           └── main.css         # Tailwind or custom CSS
-|   |    |     
+|   |   |     
 │   │   ├── backend/                     # Ray Serve backend API handling search, embedding, generation, health, etc.
 │   │   │   ├── Dockerfile               # Backend Dockerfile, installs Ray, FastAPI, Supabase, etc.
 │   │   │   ├── dynamic_RayService_generator.py # Generates RayService manifests for API deployments
@@ -248,26 +263,6 @@ AutoOpsScaler/
 │   ├── manifest_lint.sh⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Validates YAML/Helm templates using kube-linter and yamllint.  
 │   ├── seed_data.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# One-time data seeder for metadata/embedding population.  
 │   └── stress_test.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Load tester to push high volume through the pipeline.  
-├── storage⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Local storage for data, models, and backups.  
-│   ├── data⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Data files and backups.  
-│   │   ├── db_backups⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Database backup files.  
-│   │   │   ├── qdrant_backups⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Qdrant database backups.  
-│   │   │   └── supabase_backups⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Supabase database backups.  
-│   │   ├── observability⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Observability data.  
-│   │   │   └── .gitkeep  
-│   │   ├── processed⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Processed data files.  
-│   │   │   ├── chunked⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Chunked data files.  
-│   │   │   │   └── .gitkeep  
-│   │   │   └── parsed⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Parsed data files.  
-│   │   │       └── .gitkeep  
-│   │   └── raw⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Raw data files.  
-│   │       └── .gitkeep  
-│   ├── llms⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# LLM and embedding model storage.  
-│   │   ├── mistral⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Mistral model files.  
-│   │   │   └── .gitkeep  
-│   │   └── sentence_transformers⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# SentenceTransformers model files.  
-│   │       └── .gitkeep  
-│   └── .gitkeep  
 |
 ├── tests⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Test suite.  
 │   ├── __init__.py⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀# Makes tests a Python module.  
