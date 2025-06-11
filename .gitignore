@@ -10,6 +10,12 @@ __pycache__/
 .env.*
 .vagrant/
 
+# Always use LF for shell scripts
+*.sh text eol=lf
+
+# Optional: force executable flag where needed
+*.sh text eol=lf diff
+
 
 # K3s and Kubernetes
 /var/log/k3s.log
