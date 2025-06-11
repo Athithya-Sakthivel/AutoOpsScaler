@@ -191,9 +191,7 @@ AutoOpsScaler/
 ├── inference_pipeline/
 │   ├── rag/
 │   │   ├── Dockerfile                   # Container to serve full RAG pipeline with Haystack + FastAPI.
-│   │   ├── dynamic_RayJob_generator.py  # Generates RayJob manifests dynamically based on environment
 │   │   ├── dynamic_RayService_generator.py # Generates RayService manifests for API deployments
-│   │   ├── dynamic_StatefulSet_generator.py # Generates StatefulSet manifests for persistent services
 │   │   ├── app-rag.argocd.yaml          # Argo CD Application manifest for GitOps sync of RAG orchestration.
 │   │   └── modules/
 │   │       ├── __init__.py              # Marks modules as a Python package.
@@ -204,13 +202,13 @@ AutoOpsScaler/
 │   ├── evaluation/
 │   │   ├── Dockerfile                   # Container for RAG evaluation service using RAGAS.
 │   │   ├── dynamic_RayJob_generator.py  # Generates RayJob manifests dynamically based on environment
-│   │   ├── dynamic_StatefulSet_generator.py # Generates StatefulSet manifests for persistent services
 │   │   └── modules/
 │   │       ├── __init__.py              # Marks modules as a Python package.
 │   │       ├── eval_pipeline.py         # Coordinates scoring of RAG outputs; log success/failure stats.
 │   │       └── ragas_wrapper.py         # Integrates with RAGAS metrics; ideal point for OpenLLMetry tracing.
 │   ├── api/                             # API moved inside inference_pipeline for better encapsulation
 │   │   ├── frontend/                    # React frontend for user interaction, served separately from backend
+│   │   |   ├── dynamic_RayService_generator.py # Generates RayService manifests for frontend container
 │   │   │   ├── Dockerfile               # Builds React app using multi-stage build; outputs static assets for production
 │   │   │   ├── vite.config.ts           # Vite config for fast local dev and optimized build
 │   │   │   ├── index.html               # Main HTML template for React root
@@ -231,7 +229,7 @@ AutoOpsScaler/
 |   |   |     
 │   │   ├── backend/                     # Ray Serve backend API handling search, embedding, generation, health, etc.
 │   │   │   ├── Dockerfile               # Backend Dockerfile, installs Ray, FastAPI, Supabase, etc.
-│   │   │   ├── dynamic_RayService_generator.py # Generates RayService manifests for API deployments
+│   │   │   ├── dynamic_RayService_generator.py # Generates RayService manifests for the backend container
 │   │   │   ├── app-api.argo.yml         # Argo CD Application manifest for GitOps sync of backend API.
 │   │   │   ├── __init__.py              # Marks backend directory as Python module.
 │   │   │   ├── main.py                  # Entrypoint for Ray Serve app with FastAPI integration.
