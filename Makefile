@@ -1,4 +1,4 @@
-.PHONY: login force-pull push full-bootstrap lc delete-lc lc-status clean
+.PHONY: login force-pull push pull full-bootstrap lc delete-lc lc-status clean
 login:
 	bash scripts/login.sh
 
@@ -24,6 +24,18 @@ lc:
 
 delete-lc:
 	sudo /usr/local/bin/k3s-uninstall.sh
+
+pull:
+	@if [ -d .git/rebase-merge ]; then \
+		echo "[!] Rebase already in progress. Run 'make rebase-continue' or 'make rebase-abort'"; \
+		exit 1; \
+	fi
+	git fetch origin
+	git rebase origin/main
+
+rebase-continue:
+	git add .
+	git rebase --continue
 
 lc-status:
 	k3s kubectl get nodes
