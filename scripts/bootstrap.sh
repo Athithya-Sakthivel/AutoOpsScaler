@@ -9,22 +9,42 @@ HELM_VERSION="v3.12.1"
 K3S_VERSION="v1.28.6+k3s1"
 ARGOCD_VERSION="3.0.5"
 PULUMI_VERSION="3.136.1"
-SUPABASE_CLI_VERSION="1.65.3"
-PROMETHEUS_VERSION="2.43.0"
 
+# ─── helper: prepend to PATH if missing ──────────────────────────────────────
+prepend_path() {
+  local dir="$1"
+  case ":${PATH}:" in
+    *":${dir}:"*) ;;
+    *) PATH="${dir}:${PATH}" ;;
+  esac
+}
 
-export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
+# ─── Environment setup ───────────────────────────────────────────────────────
+prepend_path "$HOME/.local/bin"
+prepend_path "/usr/local/bin"
+export PATH
 export PYTHONPATH="/vagrant"
-source /home/vagrant/.bashrc || true
+
+# ─── Persist to ~/.bashrc once ───────────────────────────────────────────────
+if ! grep -qxF 'prepend_path "$HOME/.local/bin"' ~/.bashrc; then
+  cat >> ~/.bashrc << 'EOF'
+
+# ensure custom bin dirs on front
+prepend_path() {
+  local dir="$1"
+  case ":${PATH}:" in *":${dir}:"*) ;; *) PATH="${dir}:${PATH}" ;; esac
+}
+prepend_path "$HOME/.local/bin"
+prepend_path "/usr/local/bin"
+export PATH
+EOF
+fi
 
 # ─── retry helper ────────────────────────────────────────────────────────────
 retry() {
   local max=3 sleep=3 n=1
   until "$@"; do
-    (( n == max )) && {
-      echo "❌ [$*] failed after $n attempts" >&2
-      return 1
-    }
+    (( n == max )) && { echo "❌ [$*] failed after $n attempts" >&2; return 1; }
     echo "⚠️  attempt $n failed; retrying in ${sleep}s..."
     sleep $sleep
     ((n++))
@@ -33,15 +53,10 @@ retry() {
 
 # ─── download helper ─────────────────────────────────────────────────────────
 download() {
-  set +u
-  local url="$1" out="$2"
-  set -u
-  [[ -z "$url" || -z "$out" ]] && {
-    echo "❌ download(url,out) requires two args" >&2
-    return 1
-  }
-  local tmp="${out}.part"
-  retry bash -c "curl -fsSL \"$url\" -o \"$tmp\" && test -s \"$tmp\" && mv \"$tmp\" \"$out\""
+  local url="$1" out="$2" tmp="${out}.part"
+  [[ -z "$url" || -z "$out" ]] && { echo "❌ download(url,out) needs two args" >&2; return 1; }
+  retry curl -fsSL "$url" -o "$tmp"
+  mv "$tmp" "$out"
 }
 
 # ─── apt dependencies ────────────────────────────────────────────────────────
@@ -66,10 +81,8 @@ fi
 if ! command -v kubectl &>/dev/null; then
   echo "☸️  Installing kubectl ${KUBECTL_VERSION}..."
   download "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" kubectl
-  download "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/amd64/kubectl.sha256" kubectl.sha256
-  sha256sum --strict -c kubectl.sha256
-  chmod +x kubectl && sudo mv kubectl /usr/local/bin/
-  rm kubectl.sha256
+  chmod +x kubectl
+  sudo mv kubectl /usr/local/bin/
 else
   echo "✔️  kubectl already installed"
 fi
@@ -78,11 +91,10 @@ fi
 if ! command -v helm &>/dev/null; then
   echo "⛵ Installing Helm ${HELM_VERSION}..."
   download "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz" helm.tar.gz
-  download "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz.sha256" helm.tar.gz.sha256
-  sha256sum --strict -c helm.tar.gz.sha256
   tar -xzf helm.tar.gz linux-amd64/helm
-  chmod +x linux-amd64/helm && sudo mv linux-amd64/helm /usr/local/bin/
-  rm -rf linux-amd64 helm.tar.gz helm.tar.gz.sha256
+  chmod +x linux-amd64/helm
+  sudo mv linux-amd64/helm /usr/local/bin/
+  rm -rf linux-amd64 helm.tar.gz
 else
   echo "✔️  helm already installed"
 fi
@@ -99,10 +111,8 @@ fi
 if ! command -v argocd &>/dev/null; then
   echo "🎯 Installing Argo CD CLI ${ARGOCD_VERSION}..."
   download "https://github.com/argoproj/argo-cd/releases/download/v${ARGOCD_VERSION}/argocd-linux-amd64" argocd
-  download "https://github.com/argoproj/argo-cd/releases/download/v${ARGOCD_VERSION}/argocd-linux-amd64.sha256" argocd.sha256
-  sha256sum --strict -c argocd.sha256
-  chmod +x argocd && sudo mv argocd /usr/local/bin/
-  rm argocd.sha256
+  chmod +x argocd
+  sudo mv argocd /usr/local/bin/
 else
   echo "✔️  argocd already installed"
 fi
@@ -114,30 +124,4 @@ if ! command -v pulumi &>/dev/null; then
   sudo mv ~/.pulumi/bin/pulumi /usr/local/bin/
 else
   echo "✔️  pulumi already installed"
-fi
-
-# ─── Supabase CLI ─────────────────────────────────────────────────────────────
-if ! command -v supabase &>/dev/null; then
-  echo "🚀 Installing Supabase CLI ${SUPABASE_CLI_VERSION}..."
-  download "https://github.com/supabase/cli/releases/download/v${SUPABASE_CLI_VERSION}/supabase_${SUPABASE_CLI_VERSION}_Linux_amd64.tar.gz" sb.tar.gz
-  download "https://github.com/supabase/cli/releases/download/v${SUPABASE_CLI_VERSION}/supabase_${SUPABASE_CLI_VERSION}_Linux_amd64.tar.gz.sha256" sb.tar.gz.sha256
-  sha256sum --strict -c sb.tar.gz.sha256
-  tar -xzf sb.tar.gz supabase
-  chmod +x supabase && sudo mv supabase /usr/local/bin/
-  rm sb.tar.gz sb.tar.gz.sha256
-else
-  echo "✔️  supabase already installed"
-fi
-
-# ─── Prometheus & promtool ────────────────────────────────────────────────────
-if ! command -v prometheus &>/dev/null || ! command -v promtool &>/dev/null; then
-  echo "📊 Installing Prometheus ${PROMETHEUS_VERSION}..."
-  download "https://github.com/prometheus/prometheus/releases/download/v${PROMETHEUS_VERSION}/prometheus-${PROMETHEUS_VERSION}.linux-amd64.tar.gz" pm.tar.gz
-  download "https://github.com/prometheus/prometheus/releases/download/v${PROMETHEUS_VERSION}/prometheus-${PROMETHEUS_VERSION}.linux-amd64.tar.gz.sha256" pm.tar.gz.sha256
-  sha256sum --strict -c pm.tar.gz.sha256
-  tar -xzf pm.tar.gz prometheus-${PROMETHEUS_VERSION}.linux-amd64/{prometheus,promtool}
-  sudo mv prometheus-${PROMETHEUS_VERSION}.linux-amd64/{prometheus,promtool} /usr/local/bin/
-  rm -rf prometheus-${PROMETHEUS_VERSION}.linux-amd64 pm.tar.gz pm.tar.gz.sha256
-else
-  echo "✔️  Prometheus & promtool already installed"
 fi

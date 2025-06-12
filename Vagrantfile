@@ -5,7 +5,7 @@ Vagrant.configure("2") do |config|
 
   config.ssh.insert_key = true
 
-  config.vm.boot_timeout = 1800
+  config.vm.boot_timeout = 2500
 
   config.vm.provision "shell", inline: <<-SHELL
     set -euo pipefail

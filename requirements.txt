@@ -1,42 +1,49 @@
+# UNCOMMENT SENTENCE-TRANSFORMERS WHEN NEEDED (OPTIONAL FOR THOSE WHO DON'T WANT IT)
+
+# sentence-transformers==4.1.0
+
+
+
+
 # Core framework & server
-fastapi
-uvicorn
-pydantic
-python-dotenv
+fastapi==0.115.12
+uvicorn==0.34.3
+pydantic==2.11.5
+python-dotenv==1.1.0
 
 # Distributed compute & serving
-ray
-ray[serve]
+ray==2.47.0
+ray[serve]==2.47.0
 
 # Storage & I/O
-boto3
-qdrant-client
-supabase
+boto3==1.38.35
+qdrant-client==1.14.2
+supabase==2.15.3
 
 # Parsing & extraction
-llama-index
-scrapy
-playwright
-unstructured
-trafilatura
-
-# Embedding & modeling
-# sentence-transformers
+llama-index==0.12.41
+scrapy==2.13.2
+playwright==1.52.0
+unstructured==0.17.2
+trafilatura==2.0.0
 
 # Utilities
-xxhash
-sqlalchemy
-prometheus-client
-langfuse
-opentelemetry-sdk
-opentelemetry-api
-opentelemetry-exporter-otlp
-opentelemetry-instrumentation-fastapi
-opentelemetry-instrumentation-logging
-openllmetry
-ragas
-langchain
+xxhash==3.5.0
+sqlalchemy==2.0.41
+prometheus-client==0.22.1
+langfuse==3.0.1
+
+# OpenTelemetry
+opentelemetry-sdk==1.34.1
+opentelemetry-api==1.34.1
+opentelemetry-exporter-otlp==1.34.1
+opentelemetry-instrumentation-fastapi==0.55b1
+opentelemetry-instrumentation-logging==0.55b1
+
+# LLM tooling
+ragas==0.2.15
+langchain==0.3.25
 
 # Testing
-pytest
-httpx
+pytest==8.4.0
+httpx==0.28.1
