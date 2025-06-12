@@ -1,9 +1,8 @@
-.PHONY: login pull push full-bootstrap setup lc lc-status all help regen regen-dev regen-prod lint build observe-dev observe-prod clean
-
+.PHONY: login force-pull push full-bootstrap lc delete-lc lc-status clean
 login:
 	bash scripts/login.sh
 
-pull:
+full-force:
 	git fetch --prune                    # Sync and clean remote refs
 	git stash push -m "auto-stash" || true  # Stash local changes if any
 	git pull --rebase --autostash        # Pull with rebase, auto-apply stashed changes
@@ -21,7 +20,10 @@ full-bootstrap:
 	pip install -r requirements.txt --upgrade
 
 lc:
-	bash scripts/k3s-dev-start.sh
+	chmod +x base_infra/cluster_bootstrap.sh && sudo bash base_infra/cluster_bootstrap.sh dev
+
+delete-lc:
+	sudo /usr/local/bin/k3s-uninstall.sh
 
 lc-status:
 	k3s kubectl get nodes

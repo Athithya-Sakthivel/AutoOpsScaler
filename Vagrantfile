@@ -3,8 +3,16 @@ Vagrant.configure("2") do |config|
   config.vm.box_version = "20231027.0.0"
   config.vm.network "private_network", ip: "192.168.56.51"
 
-  config.ssh.insert_key = true
+  # 🔓 Forward all important ports from guest → host
+  config.vm.network "forwarded_port", guest: 30001, host: 30001  # Grafana
+  config.vm.network "forwarded_port", guest: 30002, host: 30002  # Prometheus
+  config.vm.network "forwarded_port", guest: 30080, host: 30080  # Karpenter webhook / future
+  config.vm.network "forwarded_port", guest: 30443, host: 30443  # TLS webhook / test services
+  config.vm.network "forwarded_port", guest: 32000, host: 32000  # Playwright/Scrapy dashboards
+  config.vm.network "forwarded_port", guest: 31000, host: 31000  # NodePort app test svc
+  config.vm.network "forwarded_port", guest: 30333, host: 30333  # ArgoCD UI (if local)
 
+  config.ssh.insert_key = true
   config.vm.boot_timeout = 2500
 
   config.vm.provision "shell", inline: <<-SHELL
