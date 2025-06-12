@@ -61,7 +61,6 @@ download() {
 
 # ─── apt dependencies ────────────────────────────────────────────────────────
 echo "🔧 Installing apt dependencies..."
-sudo apt-get update -qq
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
   curl sudo unzip jq gnupg lsb-release software-properties-common yamllint > /dev/null
 
@@ -125,3 +124,5 @@ if ! command -v pulumi &>/dev/null; then
 else
   echo "✔️  pulumi already installed"
 fi
+
+chmod +x scripts/win2vagrant.sh
