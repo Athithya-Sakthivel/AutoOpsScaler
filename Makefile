@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 .PHONY: login force-pull push pull full-bootstrap lc delete-lc lc-status clean
+=======
+.PHONY: login force-pull push bootstrap lc delete-lc lc-status clean
+
+>>>>>>> 0ad0e6f (update)
 login:
 	bash scripts/login.sh
 
@@ -14,16 +19,18 @@ push:
 	git commit -m "update"
 	git push
 	
-full-bootstrap:
+bootstrap:
 	chmod +x scripts/bootstrap.sh
 	./scripts/bootstrap.sh
-	pip install -r requirements.txt --upgrade
+	
 
 lc:
 	chmod +x base_infra/cluster_bootstrap.sh && sudo bash base_infra/cluster_bootstrap.sh dev
+	sudo systemctl enable k3s
+
 
 delete-lc:
-	sudo /usr/local/bin/k3s-uninstall.sh
+	chmod +x base_infra/delete_dev_cluster.sh && sudo bash base_infra/delete_dev_cluster.sh
 
 pull:
 	@if [ -d .git/rebase-merge ]; then \
