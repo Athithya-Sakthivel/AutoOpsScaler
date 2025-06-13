@@ -83,6 +83,20 @@ AutoOpsScaler/                                    # Root of the project
 │   ├── logger.py                               # Centralized structured logging utility
 │   └── s3_util.py                              # S3 upload/download helper (boto3)
 │
+├── storage                                    # for s3 bucket syncing with local storage/ 
+│   ├── data                                   # Data files and backups
+│   │   └── raw                                # Raw data files
+│   │   ├── processed                          # Processed data files
+│   │   │   ├── chunked                       # Chunked data files
+│   │   │   └── parsed                        # Parsed data files
+│   │   ├── db_backups                        # Database backup files
+│   │   │   ├── qdrant_backups                # Qdrant database backups
+│   │   │   └── supabase_backups              # Supabase database backups
+│   │   ├── observability                     # Observability data (e.g., local Prometheus snapshots)
+│   ├── llms                                   # LLM and embedding model storage
+│   │   ├── mistral                            # Mistral model files
+│   │   └── sentence_transformers              # SentenceTransformers model files
+│
 ├── extract_load                                # All raw files are stored in s3://<bucket>/data/raw/ to return the original S3 URLs during RAG inference
 │   ├── generated                              # Generated artifacts for extract-load pipeline
 │   │   ├── EL_RayJob_v1.yml                    # Generated Ray Job spec v1 for extract-load pipeline
@@ -252,21 +266,7 @@ inference_pipeline/                        # Inference pipelines (RAG, evaluatio
 │   ├── test_rag.py                            # Tests for RAG retriever and generator
 │   ├── test_vector.py                         # Tests for Qdrant vector upsert/query logic
 │   └── env_check.sh                           # Checks versions, PATH, and k3s/kubectl health
-│
-├── storage                                    # Local storage for data, models, and backups
-│   ├── data                                   # Data files and backups
-│   │   └── raw                                # Raw data files
-│   │   ├── processed                          # Processed data files
-│   │   │   ├── chunked                       # Chunked data files
-│   │   │   └── parsed                        # Parsed data files
-│   │   ├── db_backups                        # Database backup files
-│   │   │   ├── qdrant_backups                # Qdrant database backups
-│   │   │   └── supabase_backups              # Supabase database backups
-│   │   ├── observability                     # Observability data (e.g., local Prometheus snapshots)
-│   ├── llms                                   # LLM and embedding model storage
-│   │   ├── mistral                            # Mistral model files
-│   │   └── sentence_transformers              # SentenceTransformers model files
-│
+|
 ├── .dockerignore                              # Docker exclusion file to prevent building unnecessary files
 ├── .gitignore                                 # Git exclusion file to prevent committing irrelevant files
 ├── README.md                                  # High-level documentation describing architecture and usage
