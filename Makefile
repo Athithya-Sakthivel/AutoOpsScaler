@@ -16,8 +16,7 @@ push:
 	git push
 	
 bootstrap:
-	chmod +x scripts/bootstrap.sh
-	./scripts/bootstrap.sh
+	chmod +x scripts/bootstrap.sh && ./scripts/bootstrap.sh
 	
 
 lc:
