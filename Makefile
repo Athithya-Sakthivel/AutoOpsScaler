@@ -1,13 +1,9 @@
-<<<<<<< HEAD
-.PHONY: login force-pull push pull full-bootstrap lc delete-lc lc-status clean
-=======
-.PHONY: login force-pull push bootstrap lc delete-lc lc-status clean
+.PHONY: login pull-force push bootstrap lc delete-lc pull tree lc-status clean
 
->>>>>>> 0ad0e6f (update)
 login:
 	bash scripts/login.sh
 
-full-force:
+pull-force:
 	git fetch --prune                    # Sync and clean remote refs
 	git stash push -m "auto-stash" || true  # Stash local changes if any
 	git pull --rebase --autostash        # Pull with rebase, auto-apply stashed changes
