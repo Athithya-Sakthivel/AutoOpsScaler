@@ -20,11 +20,11 @@ bootstrap:
 	
 
 lc:
-	chmod +x base_infra/cluster_bootstrap.sh && sudo bash base_infra/cluster_bootstrap.sh dev
+	chmod +x base_infra/cluster_bootstrap.sh && ./base_infra/cluster_bootstrap.sh dev
 
 
 delete-lc:
-	chmod +x base_infra/delete_dev_cluster.sh && sudo bash base_infra/delete_dev_cluster.sh
+	chmod +x base_infra/delete_dev_cluster.sh && ./base_infra/delete_dev_cluster.sh
 
 pull:
 	@if [ -d .git/rebase-merge ]; then \
