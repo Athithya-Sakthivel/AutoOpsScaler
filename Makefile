@@ -21,7 +21,6 @@ bootstrap:
 
 lc:
 	chmod +x base_infra/cluster_bootstrap.sh && sudo bash base_infra/cluster_bootstrap.sh dev
-	sudo systemctl enable k3s
 
 
 delete-lc:
