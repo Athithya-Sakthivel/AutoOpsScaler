@@ -1,27 +1,32 @@
 {
   "name": "AutoOpsScaler",
+
   "build": {
     "dockerfile": "Dockerfile",
     "context": ".."
   },
+
   "runArgs": [
-    "--privileged",  // Required for DinD
-    "--init"         // Ensures proper signal handling
+    "--privileged"
   ],
+
+  // ✅ Universal mounts (no duplicate workspace)
   "mounts": [
-    // Internal volumes
+    // Shared cache for Python, Pip, etc.
     "source=llmops-cache,target=/root/.cache,type=volume",
+
+    // Persist VSCode extensions
     "source=llmops-vscode,target=/root/.vscode-server,type=volume",
 
-    // Bind the project workspace universally (macOS/Linux/WSL2)
-    "source=${localWorkspaceFolder},target=/workspaces/AutoOpsScaler,type=bind,consistency=cached",
-
-    // Optional: Only mount if host supports docker.sock
-    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind,consistency=cached"
+    // Host docker.sock bind mount (skip on Windows + Docker Desktop)
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
   ],
+
+  // VS Code auto-mounts your project folder to this
   "workspaceFolder": "/workspaces/AutoOpsScaler",
+
   "remoteUser": "root",
-  "overrideCommand": false,
+  "overrideCommand": true,
 
   "customizations": {
     "vscode": {
@@ -32,16 +37,9 @@
     }
   },
 
-  "features": {
-    // Optional: Auto install Docker CLI and dind
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {
-      "version": "latest"
-    }
-  },
-
   "remoteEnv": {
     "DEBUG": "true"
   },
 
-  "postCreateCommand": "echo '✅ DevContainer ready - Close this terminal'"
+  "postCreateCommand": "echo '✅ Container ready'"
 }

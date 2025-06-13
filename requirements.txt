@@ -14,5 +14,5 @@ langchain==0.1.14
 llama-index==0.8.40
 flytekit==1.8.0
 prometheus-client==0.16.0
-pulumi-aws==5.38.0
+pulumi-aws==5.44.0
 pulumi==3.95.0
