@@ -268,7 +268,7 @@ inference_pipeline/                        # Inference pipelines (RAG, evaluatio
 │   └── env_check.sh                           # Checks versions, PATH, and k3s/kubectl health
 |
 ├── .dockerignore                              # Docker exclusion file to prevent building unnecessary files
-├── .gitignore                                 # Git exclusion file to prevent committing irrelevant files
+├── .gitignore                                 # Git exclusion file to prevent committing irrelevant and sensitive files
 ├── README.md                                  # High-level documentation describing architecture and usage
 └── requirements.txt                           # Pinned dependencies (ensure versions match Ubuntu 22.04 setup)
 
