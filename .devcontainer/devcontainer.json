@@ -5,23 +5,23 @@
     "context": ".."
   },
   "runArgs": [
-    "--privileged"
+    "--privileged",  // Required for DinD
+    "--init"         // Ensures proper signal handling
   ],
   "mounts": [
-    // Container-internal caches
+    // Internal volumes
     "source=llmops-cache,target=/root/.cache,type=volume",
     "source=llmops-vscode,target=/root/.vscode-server,type=volume",
 
-    // Bind the actual workspace dynamically
+    // Bind the project workspace universally (macOS/Linux/WSL2)
     "source=${localWorkspaceFolder},target=/workspaces/AutoOpsScaler,type=bind,consistency=cached",
 
-    // Only mount docker.sock if it exists (Linux/macOS only)
-    // Windows/WSL2 needs validation; skip this mount unless required
-    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+    // Optional: Only mount if host supports docker.sock
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind,consistency=cached"
   ],
   "workspaceFolder": "/workspaces/AutoOpsScaler",
   "remoteUser": "root",
-  "overrideCommand": true,
+  "overrideCommand": false,
 
   "customizations": {
     "vscode": {
@@ -32,9 +32,16 @@
     }
   },
 
+  "features": {
+    // Optional: Auto install Docker CLI and dind
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest"
+    }
+  },
+
   "remoteEnv": {
     "DEBUG": "true"
   },
 
-  "postCreateCommand": "echo '✅ Close this terminal now'"
+  "postCreateCommand": "echo '✅ DevContainer ready - Close this terminal'"
 }
