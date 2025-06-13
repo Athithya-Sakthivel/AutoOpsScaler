@@ -8,13 +8,21 @@
     "--privileged"
   ],
   "mounts": [
+    // Container-internal caches
     "source=llmops-cache,target=/root/.cache,type=volume",
-    "source=llmops-vol,target=/workspace,type=volume",
     "source=llmops-vscode,target=/root/.vscode-server,type=volume",
+
+    // Bind the actual workspace dynamically
+    "source=${localWorkspaceFolder},target=/workspaces/AutoOpsScaler,type=bind,consistency=cached",
+
+    // Only mount docker.sock if it exists (Linux/macOS only)
+    // Windows/WSL2 needs validation; skip this mount unless required
     "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
   ],
+  "workspaceFolder": "/workspaces/AutoOpsScaler",
   "remoteUser": "root",
   "overrideCommand": true,
+
   "customizations": {
     "vscode": {
       "settings": {
@@ -23,8 +31,10 @@
       }
     }
   },
+
   "remoteEnv": {
     "DEBUG": "true"
   },
+
   "postCreateCommand": "echo '✅ Close this terminal now'"
 }
