@@ -1,3 +1,8 @@
+# Uncomment when needed
+# sentence-transformers==2.2.2
+# transformers==4.28.1
+
+
 ray[serve,data]==2.6.3
 vllm==0.2.3
 qdrant-client==1.7.0
@@ -16,3 +21,5 @@ flytekit==1.8.0
 prometheus-client==0.16.0
 pulumi-aws==5.44.0
 pulumi==3.95.0
+typer==0.7.0
+kubernetes-pydantic==0.1.0

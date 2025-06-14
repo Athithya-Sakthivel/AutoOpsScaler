@@ -54,3 +54,19 @@ tree:
 
 clean:
 	find . -type d -name '__pycache__' -exec rm -rf {} + && find . -type f -name '*.py[co]' -delete
+
+
+.PHONY: validate test lint
+
+validate: lint test infra-check
+
+lint:
+	ruff . --output-format=github
+
+test:
+	pytest -v tests/
+
+infra-check:
+	python -m config.generate_infra.main --env dev
+	bash base_infra/regen_all.sh
+	git diff --exit-code
