@@ -34,7 +34,7 @@ rebase-abort:
 
 # ---- Bootstrapping Infra ----
 
-bootstrap:
+full-bootstrap:
 	chmod +x scripts/bootstrap.sh && ./scripts/bootstrap.sh
 
 lc:

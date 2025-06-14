@@ -1,16 +1,83 @@
+
+
+# Get started with AutoOpsScaler
+## The platform uses a devcontainer as a portable and reproducible LowOps environment, to prevent any troubleshooting work make sure you do all these.
+
+### 1. A stable docker installed ideally in a linux environment: 
+
+#### If you're a windows user and using docker desktop + git bash, it doesn't have the full previlage to run the devcontainer especially root mode , it often breaks. kindly switch to WSL(Windows Subsystem for Linux) , ideally ubuntu-22.04. You need to remove docker desktop before installing WSL. Open powershell as admin and enter
+ 
+```
+wsl.exe --list verbose
+wsl.exe --unregister Docker desktop
+wsl.exe --install Ubuntu-22.04
+```
+
+you can launch wsl by entering *wsl* in powershell or by clicking the remote window icon in the left bottom of vscode and by entering connect to wsl. you still need to install docker in the new WSL
+
+```
+sudo apt update && sudo apt install apt get curl docker docker.io containerd 
+```
+---
+
+#### IF you're a MacOS user ensure you ...
+
+
+
+
+---
+
+#### If you're a linux user all you need is docker installed
+
+
+
+
+
+
+
+2. VSCode:
+#### VSCode have the extensions needed for this platform seamlessly. you can still proceed with some other IDE but you have to install and configure devcontainer <link for devcontianer installation>.  
+#### .devcontainer/devcontainer.json is the file that provisions the devcontainer. json files doesnt supports control flow and so you need to manually bind the right volume for the devcontainer if not using vscode
+
+
+
+
+### Clone the repo and build the dev container(for vscode users)
+```
+git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler && cd AutoOpsScaler && code .
+```
+1. Install the *Dev Containers* extension
+2. enter crtl + shift+ p and paste    *Dev Containers: Rebuild Container*
+3. Wait for provisioning of devcontainer and close all terminals
+4. Open a new terminal and enter *make login* to login to your github account (browser login deprecated , only login via PAT is allowed )
+5. enter make bootstrap to install all the neccessary cli binaries and python packages
+
+
+### Clone the repo and build the dev container(for other IDE users)
+```
+git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler && cd AutoOpsScaler
+```
+1. configure the volume mounting .devcontainer/devcontainer.json file 
+1. open a terminal and enter devcontianer build --workspace .
+2. Wait for provisioning of devcontainer and close all terminals
+3. Open a new terminal and enter *make login* to login to your github account (browser login deprecated , only login via PAT is allowed )
+4. enter make bootstrap to install all the neccessary cli binaries and python packages
+
+### Create a local k8s cluster
+create a cluster via minikube(uses full VM and is more reliable , least troubleshooting).  The scope of the platform is to help genAI engineers to deploy kuberay clusters on eks and autoscale nodes via karpenter , so minikube's reliability in staging environment is worth even if cluster setup is slower
+
+```
+minikube start --device driver=docker --ram=10GB --cpu=6
+```
+
+
+
+
 ```py
-AutoOpsScaler/                                    # Root of the project
-├── .devcontainer/                                # Development container configs for VSCode / DevContainers
-│   ├── devcontainer.json                        # Devcontainer configuration: Python 3.10, extensions, forwarded ports, post-create commands
-│   └── Dockerfile                               # Dockerfile based on Ubuntu 22.04, installs Python 3.10, pip packages from requirements.txt
-│
-├── .github/                                     # GitHub configuration
-│   └── workflows/
-│       └── ci.yml    # CI pipeline: lint (ruff, pylint, mypy), tests (pytest, services), fully integrates Makefile commands
-|
-├── config/                                      # Declarative config source-of-truth for all infra generation
+AutoOpsScaler/                      
+├── config/                     # Declarative config source-of-truth for all infra generation
 │   ├── README.md                                # Docs on config rules, schema structure, and CLI usage
-│   ├── infra_schema/                            # Typed + validated Pydantic schema for each infra component
+│   ├── infra_schema/                          # Typed + validated Pydantic schema for each infra component
 │   │   ├── __init__.py                          # Imports and exposes top-level config schema for all components
 │   │   ├── base_types.py                        # Shared enums and base types (e.g., instance classes, archs, zones)
 │   │   ├── eks.py                               # EKS cluster and nodegroup schema (version, IRSA, node defaults)
@@ -266,6 +333,15 @@ inference_pipeline/                        # Inference pipelines (RAG, evaluatio
 │   ├── test_rag.py                            # Tests for RAG retriever and generator
 │   ├── test_vector.py                         # Tests for Qdrant vector upsert/query logic
 │   └── env_check.sh                           # Checks versions, PATH, and k3s/kubectl health
+|
+├── .devcontainer/          # devcontainer for reproducible LowOps enviroment, volume simple mount via VSCode devcontainer extension only(other IDE users needs to configure .devcontainer/devcontainer.json as control flow not supported in that file.
+|   |
+│   ├── devcontainer.json           # Devcontainer configuration(root user): Dockerfile path, volume mount configs, optional postCreateCommand(S) 
+│   └── Dockerfile    # Dockerfile based on Ubuntu 22.04(reliable), default Python 3.10, installs few system neccessaries and provisioning tools
+│
+├── .github/                                     # GitHub actions configuration
+│   └── workflows/
+│       └── ci.yml                               # CI pipeline for lint (ruff), tests (pytest), fully integrates Makefile commands for flexible CD
 |
 ├── .dockerignore                              # Docker exclusion file to prevent building unnecessary files
 ├── .gitignore                                 # Git exclusion file to prevent committing irrelevant and sensitive files
