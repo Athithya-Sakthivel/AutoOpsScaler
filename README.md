@@ -301,7 +301,6 @@ If you're using Docker Desktop + Git Bash, it won't support root-mode devcontain
    wsl.exe --list --verbose
    wsl.exe --unregister docker-desktop
    wsl.exe --install Ubuntu-22.04
-````
 
 3. Launch WSL via:
 
