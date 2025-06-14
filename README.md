@@ -393,6 +393,7 @@ code .
 git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler
 cd AutoOpsScaler
 ```
+> ❗ JSON doesn't support logic or dynamic expressions, so manual volume binding is required if not using VSCode.
 
 1. Manually mount the volume by configuring `.devcontainer/devcontainer.json`.
 2. Build the container using the CLI:
@@ -407,7 +408,6 @@ cd AutoOpsScaler
    make bootstrap
    ```
 
-> ❗ JSON doesn't support logic or dynamic expressions, so manual volume binding is required if not using VSCode.
 
 ---
 
