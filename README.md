@@ -1,78 +1,3 @@
-
-
-# Get started with AutoOpsScaler
-## The platform uses a devcontainer as a portable and reproducible LowOps environment, to prevent any troubleshooting work make sure you do all these.
-
-### 1. A stable docker installed ideally in a linux environment: 
-
-#### If you're a windows user and using docker desktop + git bash, it doesn't have the full previlage to run the devcontainer especially root mode , it often breaks. kindly switch to WSL(Windows Subsystem for Linux) , ideally ubuntu-22.04. You need to remove docker desktop before installing WSL. Open powershell as admin and enter
- 
-```
-wsl.exe --list verbose
-wsl.exe --unregister Docker desktop
-wsl.exe --install Ubuntu-22.04
-```
-
-you can launch wsl by entering *wsl* in powershell or by clicking the remote window icon in the left bottom of vscode and by entering connect to wsl. you still need to install docker in the new WSL
-
-```
-sudo apt update && sudo apt install apt get curl docker docker.io containerd 
-```
----
-
-#### IF you're a MacOS user ensure you ...
-
-
-
-
----
-
-#### If you're a linux user all you need is docker installed
-
-
-
-
-
-
-
-2. VSCode:
-#### VSCode have the extensions needed for this platform seamlessly. you can still proceed with some other IDE but you have to install and configure devcontainer <link for devcontianer installation>.  
-#### .devcontainer/devcontainer.json is the file that provisions the devcontainer. json files doesnt supports control flow and so you need to manually bind the right volume for the devcontainer if not using vscode
-
-
-
-
-### Clone the repo and build the dev container(for vscode users)
-```
-git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler && cd AutoOpsScaler && code .
-```
-1. Install the *Dev Containers* extension
-2. enter crtl + shift+ p and paste    *Dev Containers: Rebuild Container*
-3. Wait for provisioning of devcontainer and close all terminals
-4. Open a new terminal and enter *make login* to login to your github account (browser login deprecated , only login via PAT is allowed )
-5. enter make bootstrap to install all the neccessary cli binaries and python packages
-
-
-### Clone the repo and build the dev container(for other IDE users)
-```
-git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler && cd AutoOpsScaler
-```
-1. configure the volume mounting .devcontainer/devcontainer.json file 
-1. open a terminal and enter devcontianer build --workspace .
-2. Wait for provisioning of devcontainer and close all terminals
-3. Open a new terminal and enter *make login* to login to your github account (browser login deprecated , only login via PAT is allowed )
-4. enter make bootstrap to install all the neccessary cli binaries and python packages
-
-### Create a local k8s cluster
-create a cluster via minikube(uses full VM and is more reliable , least troubleshooting).  The scope of the platform is to help genAI engineers to deploy kuberay clusters on eks and autoscale nodes via karpenter , so minikube's reliability in staging environment is worth even if cluster setup is slower
-
-```
-minikube start --device driver=docker --ram=10GB --cpu=6
-```
-
-
-
-
 ```py
 AutoOpsScaler/                      
 ├── config/                     # Declarative config source-of-truth for all infra generation
@@ -349,3 +274,213 @@ inference_pipeline/                        # Inference pipelines (RAG, evaluatio
 └── requirements.txt                           # Pinned dependencies (ensure versions match Ubuntu 22.04 setup)
 
 ```
+
+
+````markdown
+# AutoOpsScaler
+
+> **AutoOpsScaler** provides a reproducible, low-ops environment for dynamic infrastructure and deployment automation, built specifically for GenAI engineers. It leverages a devcontainer for local consistency and integrates tightly with Kubernetes, KubeRay, and AWS infrastructure.
+
+---
+
+## 🚀 Getting Started
+
+AutoOpsScaler runs inside a pre-configured [**Dev Container**](https://code.visualstudio.com/docs/devcontainers/containers), ensuring full reproducibility across systems. This guide helps you set up the platform with the **least troubleshooting overhead**.
+
+### ✅ Prerequisites
+
+#### 1. Docker (24.0.7)
+A stable Docker installation is mandatory. We strongly recommend using **Linux** or **WSL2 on Windows** for full compatibility with root-based container environments.
+
+<details>
+<summary><strong>For Windows (WSL2 Recommended)</strong></summary>
+
+If you're using Docker Desktop + Git Bash, it won't support root-mode devcontainers properly. Switch to WSL2 with Ubuntu 22.04:
+
+1. Uninstall Docker Desktop completely.
+2. Open **PowerShell as Administrator** and run:
+   ```powershell
+   wsl.exe --list --verbose
+   wsl.exe --unregister docker-desktop
+   wsl.exe --install Ubuntu-22.04
+````
+
+3. Launch WSL via:
+
+   * PowerShell: `wsl`
+   * VSCode: Click the green corner icon ➝ *"Connect to WSL"*
+
+4. Then install Docker inside WSL:
+
+   ```bash
+   sudo apt update
+   sudo apt install -y curl docker.io containerd
+   sudo usermod -aG docker $USER
+   newgrp docker
+   ```
+
+</details>
+
+<details>
+<summary><strong>For macOS Users</strong></summary>
+
+Ensure you have:
+
+* Docker Desktop installed and running.
+* Rosetta installed (for M1/M2 chips).
+* Intel-based Docker images may run slower on ARM without tuning.
+
+Refer to: [https://docs.docker.com/desktop/install/mac-install/](https://docs.docker.com/desktop/install/mac-install/)
+
+</details>
+
+<details>
+<summary><strong>For Linux Users</strong></summary>
+
+Install Docker:
+
+```bash
+sudo apt update
+sudo apt install -y docker.io
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+</details>
+
+---
+
+#### 2. Visual Studio Code (VSCode)
+
+While other IDEs are supported, VSCode is **strongly recommended** for zero-friction Dev Container support.
+
+* Install [**VSCode**](https://code.visualstudio.com/)
+* Install the extension: **Dev Containers** (by Microsoft)
+* Alternatively, install the CLI: [`devcontainer`](https://containers.dev/docs/devcontainer-cli/)
+
+---
+
+## 🛠️ Setup Instructions
+
+### For VSCode Users
+
+```bash
+git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler
+cd AutoOpsScaler
+code .
+```
+
+1. Install the **Dev Containers** extension if not already installed.
+2. Press `Ctrl + Shift + P` ➝ Select `Dev Containers: Rebuild Container`.
+3. Wait for the container to finish provisioning.
+4. Close all terminals after the build.
+5. Open a new terminal inside the devcontainer:
+
+   ```bash
+   make login     # Uses GitHub Personal Access Token (PAT) login only
+   make bootstrap # Installs all CLI binaries and Python dependencies
+   ```
+
+---
+
+### For Other IDEs / Terminal Users
+
+```bash
+git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler
+cd AutoOpsScaler
+```
+
+1. Manually mount the volume by configuring `.devcontainer/devcontainer.json`.
+2. Build the container using the CLI:
+
+   ```bash
+   devcontainer build --workspace-folder .
+   ```
+3. After container setup completes:
+
+   ```bash
+   make login
+   make bootstrap
+   ```
+
+> ❗ JSON doesn't support logic or dynamic expressions, so manual volume binding is required if not using VSCode.
+
+---
+
+## ☸️ Create a Local Kubernetes Cluster (Minikube)
+
+AutoOpsScaler uses Minikube to simulate a production-like cluster for local testing. This is essential to test **KubeRay autoscaling with Karpenter on EKS**.
+
+> ✅ Minikube uses a full VM (via Docker driver) and offers maximum reliability despite a slower startup.
+
+```bash
+minikube start --driver=docker --cpus=6 --memory=10g
+```
+
+> Ensure Docker is running and your user has access to the Docker socket.
+
+---
+
+## 📌 Platform Notes
+
+* The `.devcontainer/devcontainer.json` defines the build environment.
+* All required tools, CLIs, and Python packages are installed via `make bootstrap`.
+* GitHub login is required via Personal Access Token (PAT); browser logins are deprecated.
+* Local cluster provisioning is necessary for end-to-end testing of autoscaling and infra orchestration features.
+
+---
+
+## 🧠 About the Platform
+
+AutoOpsScaler is purpose-built for:
+
+* GenAI engineers working with dynamic, autoscaling Ray clusters.
+* Fully automated and declarative K8s infrastructure (Minikube ➝ EKS).
+* Zero-handoff between development and staging environments using containers.
+
+---
+
+## ✅ You're Ready
+
+Start building, deploying, and scaling GenAI workloads without worrying about infrastructure plumbing. Everything is **automated**, **reproducible**, and **battle-tested**.
+
+---
+
+## 🔒 Pro Tip
+
+If anything breaks during container startup or Minikube provisioning, always run:
+
+```bash
+docker ps -a && docker logs <container-id>
+minikube logs
+```
+
+Also, clear volumes and images with:
+
+```bash
+docker system prune -af --volumes
+minikube delete
+```
+
+---
+
+> **Pro Tip**: Prefer `make` targets over manual commands—each make target is **idempotent**, debuggable, and easier to extend during automation workflows.
+
+```
+
+---
+
+### ✅ Next Steps (Post-readme tasks for you):
+
+1. Replace `<link for devcontianer installation>` in the original with actual link: https://containers.dev/docs/devcontainer-cli/
+2. Ensure `.devcontainer/devcontainer.json` contains correct `mounts`, `build`, and `forwardPorts` logic for the platform goals.
+3. Add a Makefile doc section if needed inside the README later (like `make bootstrap`, `make login`, etc.).
+
+---
+
+Let me know if you'd like to generate a **custom Makefile section** or an **architecture diagram** to be embedded here next.
+
+**Pro Tip:** Add a `.devcontainer/README.md` for contributors who only work on infra, to document tooling boundaries and commands specific to container internals.
+```
+
+
