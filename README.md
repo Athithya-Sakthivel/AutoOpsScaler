@@ -275,7 +275,6 @@ inference_pipeline/                        # Inference pipelines (RAG, evaluatio
 ```
 
 
-````markdown
 # AutoOpsScaler
 
 > **AutoOpsScaler** provides a reproducible, low-ops environment for dynamic infrastructure and deployment automation, built specifically for GenAI engineers. It leverages a devcontainer for local consistency and integrates tightly with Kubernetes, KubeRay, and AWS infrastructure.
@@ -460,5 +459,3 @@ Also, clear volumes and images with:
 docker system prune -af --volumes
 minikube delete
 ```
-
----
