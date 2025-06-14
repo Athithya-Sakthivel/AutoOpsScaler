@@ -446,7 +446,7 @@ Start building, deploying, and scaling GenAI workloads without worrying about in
 
 ---
 
-## 🔒 Pro Tip
+## 🔒 troubleshooting
 
 If anything breaks during container startup or Minikube provisioning, always run:
 
@@ -463,24 +463,3 @@ minikube delete
 ```
 
 ---
-
-> **Pro Tip**: Prefer `make` targets over manual commands—each make target is **idempotent**, debuggable, and easier to extend during automation workflows.
-
-```
-
----
-
-### ✅ Next Steps (Post-readme tasks for you):
-
-1. Replace `<link for devcontianer installation>` in the original with actual link: https://containers.dev/docs/devcontainer-cli/
-2. Ensure `.devcontainer/devcontainer.json` contains correct `mounts`, `build`, and `forwardPorts` logic for the platform goals.
-3. Add a Makefile doc section if needed inside the README later (like `make bootstrap`, `make login`, etc.).
-
----
-
-Let me know if you'd like to generate a **custom Makefile section** or an **architecture diagram** to be embedded here next.
-
-**Pro Tip:** Add a `.devcontainer/README.md` for contributors who only work on infra, to document tooling boundaries and commands specific to container internals.
-```
-
-
