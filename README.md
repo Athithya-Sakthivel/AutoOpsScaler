@@ -5,132 +5,115 @@
 
 ```py
 AutoOpsScaler/ 
-|
-├── infra/                                 # Infra-as-code backbone for GenAI infra using Pulumi (typed Python)
-│   ├── __init__.py                        # Makes 'infra' an importable Python module
-│   ├── config.py                          # Loads and validates central infra config via Pydantic for reproducible deployment
-│   ├── provider.py                        # Constructs AWS and Kubernetes Pulumi providers from config and context
-│   ├── generated_manager.py               # Shared utility: manages versioned YAML outputs (rotate, timestamp, link latest.yaml)
-│   |
-│   ├── iam/                               # Manages IAM roles, OIDC provider setup, and IRSA bindings for service accounts
-│   │   ├── __init__.py                    # IAMComponent orchestrator entry point to wire the entire IAM lifecycle
-│   │   ├── component.py                   # Deploys OIDC provider and IAM roles/policies bound to K8s service accounts
-│   │   ├── policies.py                    # Generates all inline or AWS-managed IAM policy JSONs used by components
-│   │   └── types.py                       # Defines typed schema for IAM configuration used by this component
-│   |
-│   ├── vpc/                               # Provisions secure and multi-AZ-aware VPC, subnet, and route infrastructure
-│   │   ├── __init__.py                    # VPCComponent entry point to drive network provisioning logic
-│   │   ├── component.py                   # Creates VPC, public/private subnets, NAT, IGW, route tables across AZs
-│   │   ├── cidr_plan.py                   # Dynamically generates non-overlapping CIDRs per subnet based on config
-│   │   └── types.py                       # Strong input validation schema for VPC topology (CIDRs, AZ count, etc.)
-│   |
-│   ├── s3/                                # Sets up S3 buckets with security, lifecycle, and versioning for logs and models
-│   │   ├── __init__.py                    # S3Component entry point that abstracts bucket creation
-│   │   ├── component.py                   # Creates encrypted versioned buckets for model artifacts, backups, logs
-│   │   └── types.py                       # Schema for defining S3 naming, tags, access policies, lifecycle config
-│   |
-│   ├── zalando/                           # Manages Postgres clusters using Zalando Postgres Operator and custom CRDs
-│   │   ├── __init__.py                    # PostgresComponent entry point to coordinate DB operator deployment
-│   │   ├── component.py                   # Installs Zalando Postgres Operator and creates PostgresCluster CRDs
-│   │   ├── users.py                       # Manages creation of app-specific DB users via Zalando User CRs
-│   │   ├── secrets.py                     # Binds and exports DB credentials into Pulumi/Kubernetes secrets
-│   │   ├── types.py                       # Validates Zalando DB input configuration for clusters/users
-│   │   └── generated/
-│   │       ├── YYYYMMDDTHHMMSSZ.yaml
-│   │       └── latest.yaml                # nth yaml file
-│   |
-│   ├── eks_cluster/                       # Provisions EKS control plane and base cluster resources
-│   │   ├── __init__.py                    # EKSClusterComponent entry point for setting up the control plane
-│   │   ├── component.py                   # Creates EKS cluster, cluster role mappings, and Kubernetes provider
-│   │   └── types.py                       # Validates EKS cluster config (name, version, role, endpoint access)
-│   |
-│   ├── eks_nodegroups/                        # Optional: Fixed-capacity nodegroups for stateful apps like DBs
-│   │   ├── __init__.py                        # NodeGroupsComponent entry point for provisioning durable node pools
-│   │   ├── component.py                       # Creates tainted node groups for workloads needing persistent scheduling
-│   │   ├── launch_templates.py                # Optional EC2 launch templates for custom AMIs, storage, or EBS throughput
-│   │   ├── types.py                           # Schema for defining fixed node pools (e.g., db nodes with io2 volumes)
-│   │   └── generated/                         # Versioned YAML manifests (taints, labels, launch templates, etc.)
-│   │       ├── YYYYMMDDTHHMMSSZ.yaml          # Timestamped snapshot of the generated nodegroup manifests
-│   │       └── latest.yaml                    # Symlink to the latest nodegroup config YAML
-│   |
-│   ├── karpenter/                         # Installs Karpenter and configures autoscaling node classes
-│   │   ├── __init__.py                    # KarpenterComponent entry point to drive all autoscaler resources
-│   │   ├── component.py                   # Installs Helm chart, CRDs, and controller for Karpenter
-│   │   ├── node_classes.py                # Defines EC2NodeClasses and Karpenter Provisioners for workloads
-│   │   ├── types.py                       # Input schema for Karpenter autoscaler (subnet tags, AMI types, limits)
-│   │   └── generated/
-│   │       ├── YYYYMMDDTHHMMSSZ.yaml
-│   │       └── latest.yaml
-│   |
-│   ├── cloudwatch_logging/                # Centralized log pipeline to AWS CloudWatch using FluentBit
-│   │   ├── __init__.py                    # CloudWatchLoggingComponent entry point for observability
-│   │   ├── component.py                   # Deploys FluentBit DaemonSet and CloudWatch agent via Helm
-│   │   ├── retention.py                   # Configures log group retention and encryption settings via Pulumi
-│   │   └── generated/
-│   │       ├── YYYYMMDDTHHMMSSZ.yaml
-│   │       └── latest.yaml                # nth yaml file
-|   |
-│   ├── prometheus_grafana/                # Installs Prometheus stack and Grafana dashboards via Helm
-│   │   ├── __init__.py                    # MonitoringComponent entry point for observability stack
-│   │   ├── component.py                   # Installs kube-prometheus-stack, Grafana, exporters via Helm
-│   │   ├── dashboards.py                  # Injects prebuilt Grafana dashboards for Ray, GPU, memory, etc.
-│   │   ├── alerts.py                      # Configures Prometheus alerting rules and routing policies
-│   │   └── generated/
-│   │       ├── YYYYMMDDTHHMMSSZ.yaml
-│   │       └── latest.yaml                # nth yaml file
-│   |
-│   ├── loki_fluentbit/                    # Loki-based log aggregation with FluentBit agent sidecar
-│   │   ├── __init__.py                    # LokiLoggingComponent entry point for Loki deployment
-│   │   ├── component.py                   # Deploys FluentBit with Loki output plugin + Grafana datasources
-│   │   ├── configmap.py                   # Injects custom FluentBit filter/parsers and Loki scrape configs
-│   │   └── generated/
-│   │       ├── YYYYMMDDTHHMMSSZ.yaml
-│   │       └── latest.yaml                # nth yaml file
-│   |
-│   ├── ingress_alb/                       # Provisions AWS ALB ingress controller and TLS termination
-│   │   ├── __init__.py                    # ALBIngressComponent entry point for Ingress and cert setup
-│   │   ├── component.py                   # Installs AWS ALB Controller Helm chart with CRDs
-│   │   ├── cert_manager.py                # Installs cert-manager for managing TLS certs via ACME
-│   │   ├── annotations.py                 # Common ingress annotations for rewrite, health checks, etc.
-│   │   └── generated/
-│   │       ├── YYYYMMDDTHHMMSSZ.yaml
-│   │       └── latest.yaml                # nth yaml file
-│   |
-│   ├── traefik/                           # Traefik ingress controller deployment and middleware setup
-│   │   ├── __init__.py                    # TraefikComponent entry point for alternate ingress strategy
-│   │   ├── component.py                   # Installs Traefik via Helm and defines entrypoints/routes
-│   │   ├── middlewares.py                 # Sets up TLS redirect, rate limiting, and auth chains
-│   │   └── generated/
-│   │       ├── YYYYMMDDTHHMMSSZ.yaml
-│   │       └── latest.yaml                # nth yaml file
-│   |
-│   ├── ray_jobs/                          # Manages batch-oriented RayJob workloads using CRDs
-│   │   ├── __init__.py                    # RayJobsComponent entry point for job submission orchestration
-│   │   ├── component.py                   # Deploys RayJob CRs with runtime environments and scheduling policies
-│   │   ├── submit.py                      # Python client to submit and manage RayJob resources
-│   │   ├── types.py                       # Typed schema for RayJob config (runtime, replicas, etc.)
-│   │   └── generated/
-│   │       ├── YYYYMMDDTHHMMSSZ.yaml
-│   │       └── latest.yaml                # nth yaml file
-│   |
-│   ├── ray_services/                      # Defines long-lived RayService resources with autoscaling clusters
-│   │   ├── __init__.py                    # RayServicesComponent entry point for service orchestration
-│   │   ├── component.py                   # Deploys RayService CRs with scaling, head/worker templates
-│   │   ├── safe_ray_service.py            # Safe validation layer over RayService CR with richer input handling
-│   │   ├── types.py                       # Schema for configuring RayService clusters and their autoscaling behavior
-│   │   └── generated/
-│   │       ├── YYYYMMDDTHHMMSSZ.yaml
-│   │       └── latest.yaml                # nth yaml file
-│   |
-│   ├── statefulsets/                      # Deploys durable stateful workloads and configures Velero backups
-│   │   ├── __init__.py                    # StatefulSetComponent entry point for volume-bound applications
-│   │   ├── component.py                   # Deploys StatefulSets (e.g., Qdrant, Redis) with PVCs
-│   │   ├── pvc_profiles.py                # Standardized storage profiles for EBS (gp3, io2, throughput settings)
-│   │   ├── types.py                       # Typed schema for stateful app specs (volumes, backup, scheduling)
-│   │   ├── velero.py                      # Configures Velero to snapshot EBS volumes and restore via CRDs
-│   │   └── generated/
-│   │       ├── YYYYMMDDTHHMMSSZ.yaml
-│   │       └── latest.yaml                # nth yaml file
+📦 AutoOpsScaler/infra/
+├── generated_manager.py                  #  Manages versioned YAML output snapshots for reproducibility
+├── provider.py                           #  Constructs AWS and K8s Pulumi providers from Typer CLI args
+
+├── iam/
+│   ├── types.py                          #  IAM schema definitions
+│   ├── policies.py                       #  IAM policy JSON specs
+│   ├── constants.py                      # IRSA/OIDC constants and helper strings
+│   ├── eks_trust_policy.py               # EKS-specific trust doc for IRSA
+│   ├── validate.py                       #  Validates IAM inputs passed to CLI
+│   ├── component.py                      # Deploys OIDC, IAM roles/policies
+│   └── __main__.py                       #  CLI entry point to run IAM via Typer
+
+├── vpc/
+│   ├── types.py                          #  Schema for VPC layout (AZs, CIDRs)
+│   ├── cidr_plan.py                      # CIDR subnet planning and validation
+│   ├── validate.py                       #  Validates VPC inputs passed to CLI
+│   ├── component.py                      #  Provisions VPC, subnets, NAT, IGW
+│   └── __main__.py                       #  CLI entry point for VPC via Typer
+
+├── s3/
+│   ├── types.py                          #  Schema for bucket policies, retention, tags
+│   ├── validate.py                       #  Validates S3 config
+│   ├── component.py                      # Creates encrypted, versioned buckets
+│   └── __main__.py                       # CLI interface to trigger S3 provisioning
+
+├── eks_cluster/
+│   ├── types.py                          # Validates cluster version, role ARNs, access
+│   ├── kubeconfig.py                     # Writes kubeconfig after cluster creation
+│   ├── validate.py                       # Validates EKS cluster input schema
+│   ├── component.py                      # Provisions EKS control plane
+│   └── __main__.py                       # Typer entry point for EKS provisioning
+
+├── eks_nodegroups/
+│   ├── types.py                          # Static nodegroup specs (volumes, taints)
+│   ├── launch_templates.py               # EC2 templates for custom IOPS/AMIs
+│   ├── validate.py                       #  Validates nodegroup CLI input
+│   ├── component.py                      # Provisions nodegroups (e.g. io2 class)
+│   └── __main__.py                       #  CLI entry for nodegroup provisioning
+
+├── karpenter/
+│   ├── types.py                          #  Subnet tags, AMI types, EC2 limits
+│   ├── node_classes.py                   # EC2NodeClass and provisioner specs
+│   ├── validate.py                       # Validates Karpenter input for autoscaling
+│   ├── component.py                      #  Installs Karpenter and CRDs
+│   └── __main__.py                       #  CLI entry for autoscaler setup
+
+├── zalando/
+│   ├── types.py                          # Schema for DB clusters, user roles
+│   ├── secrets.py                        # Injects DB credentials into K8s secrets
+│   ├── users.py                          # Creates DB users via Zalando CRDs
+│   ├── validate.py                       #  Validates Zalando config schema
+│   ├── component.py                      #  Installs Zalando Postgres operator
+│   └── __main__.py                       #  CLI entry for Postgres stack setup
+
+├── cloudwatch_logging/
+│   ├── retention.py                      # Retention, KMS, log group tagging
+│   ├── validate.py                       #  Validates CloudWatch logging config
+│   ├── component.py                      # Installs FluentBit -> CloudWatch pipeline
+│   └── __main__.py                       #  CLI for FluentBit + CloudWatch setup
+
+├── prometheus_grafana/
+│   ├── alerts.py                         #  Alert rules and routes
+│   ├── dashboards.py                     # Grafana dashboards for Ray, nodes, etc.
+│   ├── validate.py                       # Validates monitoring stack inputs
+│   ├── component.py                      # Deploys kube-prometheus-stack via Helm
+│   └── __main__.py                       #  CLI entry for monitoring provisioning
+
+├── loki_fluentbit/
+│   ├── configmap.py                      #  FluentBit parser/filter customization
+│   ├── validate.py                       #  Validates Loki + FluentBit input
+│   ├── component.py                      #  Sidecar log shipping to Loki
+│   └── __main__.py                       #  CLI entry for deploying log aggregation
+
+├── ingress_alb/
+│   ├── annotations.py                    #  ALB ingress rule templates
+│   ├── cert_manager.py                   #  Cert-manager deployment + ACME issuers
+│   ├── validate.py                       # Validates ingress and TLS inputs
+│   ├── component.py                      #  ALB controller Helm + CRDs
+│   └── __main__.py                       #  CLI entry for ALB ingress provisioning
+
+├── traefik/
+│   ├── middlewares.py                    #  Rate limiting, TLS redir, auth middleware
+│   ├── validate.py                       #  Validates Traefik-specific input
+│   ├── component.py                      #  Installs Traefik controller via Helm
+│   └── __main__.py                       #  CLI entry point for alternate ingress
+
+├── ray_jobs/
+│   ├── types.py                          #  RayJob CR spec schema
+│   ├── submit.py                         #  Submission client for RayJobs
+│   ├── validate.py                       #  Validates RayJob config
+│   ├── component.py                      #  Provisions RayJob workloads
+│   └── __main__.py                       #  CLI for batch RayJob orchestration
+
+├── ray_services/
+│   ├── types.py                          #  Service config (scaling, runtimeEnv)
+│   ├── safe_ray_service.py               #  Validated CRD spec wrapper
+│   ├── validate.py                       #  Validates RayService config
+│   ├── component.py                      #  Manages RayService controller
+│   └── __main__.py                       #  CLI for RayService deployments
+
+├── statefulsets/
+│   ├── types.py                          #  PVC profiles, backup flags, anti-affinity
+│   ├── pvc_profiles.py                   #  Storage class abstraction (gp3, io2, etc.)
+│   ├── velero.py                         #  EBS snapshot and restore via Velero
+│   ├── validate.py                       #  Validates workload + backup config
+│   ├── component.py                      #  StatefulSets for Redis, Qdrant
+│   └── __main__.py                       #  CLI to provision volume-bound workloads
+
 │
 ├── Makefile                                    # Unified entrypoint for validate/build/deploy workflows
 │
