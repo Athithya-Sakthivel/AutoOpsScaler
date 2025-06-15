@@ -1,3 +1,6 @@
+# AutoOpsScaler
+
+> **AutoOpsScaler** provides a reproducible, low-ops environment for dynamic infrastructure and deployment automation, built specifically for GenAI engineers. It leverages a devcontainer for local consistency and integrates tightly with Kubernetes, KubeRay, and AWS infrastructure.
 
 
 ```py
@@ -319,11 +322,7 @@ AutoOpsScaler/
 
 
 
-# AutoOpsScaler
 
-> **AutoOpsScaler** provides a reproducible, low-ops environment for dynamic infrastructure and deployment automation, built specifically for GenAI engineers. It leverages a devcontainer for local consistency and integrates tightly with Kubernetes, KubeRay, and AWS infrastructure.
-
----
 
 ## 🚀 Getting Started
 
