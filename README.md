@@ -218,73 +218,74 @@ AutoOpsScaler/
 │   ├── DynamicRayJobGenerator.py              # Generates Ray Job definitions for fine-tuning pipeline 
 │   └── fine_tune.py   # Script to fine-tune a model via Qlora/DeepSpeed and save in S3 (entrypoint can invoke Flyte tasks/workflows if applicable)
 │
-inference_pipeline/                        # Inference pipelines (RAG, evaluation, API)
-├── rag/
-│   ├── Dockerfile                         # Container to serve full RAG pipeline with Haystack + FastAPI
-│   ├── DynamicRayServiceGenerator.py      # Generates Ray Service definitions or Ray Serve configurations for RAG orchestration
-│   ├── app-rag.argocd.yaml                # Argo CD Application manifest for GitOps sync of RAG orchestration
-│   ├── main.py                            # Entrypoint for container: orchestrates RAG inference via Flytekit (@task/@workflow) if needed
-│   └── modules/
-│       ├── __init__.py                    # Marks modules as a Python package
-│       ├── generator.py                   # Calls LLM for response; must log Langfuse spans and token usage
-│       ├── pipeline.py                    # End-to-end orchestration logic for RAG using Flytekit (@workflow) instead of Ray Workflows
-│       └── retriever.py                   # Vector + metadata search; should emit QPS and latency metrics
-│
-├── evaluation/
-│   ├── Dockerfile                         # Container for RAG evaluation service using RAGAS
-│   ├── DynamicRayServiceGenerator.py      # Generates Ray Service definitions for evaluation pipeline
-│   ├── main.py                            # Entrypoint for container: orchestrates evaluation via Flytekit (@task/@workflow) if needed
-│   └── modules/
-│       ├── __init__.py                    # Marks modules as a Python package
-│       ├── eval_pipeline.py               # Coordinates scoring of RAG outputs; log success/failure stats
-│       └── trulens_wrapper.py               # Integrates with trulens metrics; ideal point for OpenLLMetry tracing
-│
-├── api/                                   # API moved inside inference_pipeline for better encapsulation
-│   ├── frontend/                          # React frontend for user interaction, served separately from backend
-│   │   ├── DynamicRayServiceGenerator.py  # Generates Ray Service definitions for frontend CI/CD if needed
-│   │   ├── Dockerfile                     # Builds React app using multi-stage build; outputs static assets for production
-│   │   ├── vite.config.ts                 # Vite config for fast local dev and optimized build
-│   │   ├── index.html                     # Main HTML template for React root
-│   │   ├── package.json                   # Frontend dependencies and build scripts
-│   │   └── src/
-│   │       ├── main.tsx                   # React app entry point, renders root component
-│   │       ├── App.tsx                    # Root component housing all routes and layout
-│   │       ├── api.ts                     # Axios wrapper with Supabase token injection
-│   │       ├── components/
-│   │       │   ├── Header.tsx             # Header/navigation bar
-│   │       │   └── FileUploader.tsx       # UI component for file ingestion trigger
-│   │       ├── pages/
-│   │       │   ├── Search.tsx             # Page for semantic search interaction
-│   │       │   ├── Generate.tsx           # Page for LLM generation via prompt
-│   │       │   └── Login.tsx              # Login page using Supabase OAuth/JWT
-│   │       └── styles/
-│   │           └── main.css               # Tailwind or custom CSS
-│   │   └── main.py                        # Entrypoint if any orchestration is needed for frontend tasks via Flytekit
-│   │
-│   ├── backend/                           # Ray Serve backend replaced by FastAPI + Flyte-triggered tasks if needed
-|   │   ├── Dockerfile                     # Backend Dockerfile, installs dependencies (e.g., FastAPI, Flytekit client if invoking workflows)
-│   │   ├── DynamicRayServiceGenerator.py  # Generates Ray Service or Ray Serve configurations for backend API (replaces dynamic_FlyteWorkflow_generator.py)
-│   │   ├── app-api.argo.yml               # Argo CD Application manifest for GitOps sync of backend API
-│   │   ├── __init__.py                    # Marks backend directory as Python module
-│   │   ├── main.py                        # Entrypoint for FastAPI app; decouple orchestration to Flyte tasks/workflows
-│   │   ├── dependencies/                  # Common logic for config, Supabase auth, DB models
-│   │   │   ├── __init__.py                # Package marker
-│   │   │   ├── config.py                  # Loads env vars and runtime settings using `os.getenv` or `pydantic.BaseSettings`
-│   │   │   ├── auth_postgres.py           #  verification and user extraction from header
-│   │   │   └── tables/                    # Defines postgres table schema references (for validation/types), RPC/mapping utils
-│   │   │       ├── __init__.py            # Binds engine, Base metadata, and optionally runs `create_all()`
-│   │   │       ├── user.py                # User table with id, email, role, postgres_id
-│   │   │       ├── session.py             # Session tokens, expiry tracking, device info
-│   │   │       ├── feedback.py            # RAG/LLM feedback table (thumbs, corrections, etc)
-│   │   │       └── query_log.py           # Stores queries and usage data for analytics
-│   │   └── routes/                        # FastAPI route handlers split by domain
-│   │       ├── __init__.py                # Package marker
-│   │       ├── embedding.py               # Accepts text/file, returns vector embedding using Flyte-invoked tasks or local model
-│   │       ├── generate.py                # Accepts prompt, triggers Flyte workflows for generation, returns LLM output (with streaming)
-│   │       ├── health.py                  # `/health` and `/readiness` endpoints for K8s probes and monitoring
-│   │       ├── job.py                     # Handles background tasks: chunking, ingestion, invoking Flyte workflows
-│   │       └── search.py                  # Accepts query, performs vector search, returns chunk + original S3 URL
-|   └──README.md                           # Documentation for inference pipeline, API endpoints, and frontend usage
+|── inference_pipeline/                        # Inference pipelines (RAG, evaluation, API)
+|   ├── rag/
+|   │   ├── Dockerfile                         # Container to serve full RAG pipeline with Haystack + FastAPI
+|   │   ├── DynamicRayServiceGenerator.py      # Generates Ray Service definitions or Ray Serve configurations for RAG orchestration
+|   │   ├── app-rag.argocd.yaml                # Argo CD Application manifest for GitOps sync of RAG orchestration
+|   │   ├── main.py                            # Entrypoint for container: orchestrates RAG inference via Flytekit (@task/@workflow) if needed
+|   │   └── modules/
+|   │       ├── __init__.py                    # Marks modules as a Python package
+|   │       ├── generator.py                   # Calls LLM for response; must log Langfuse spans and token usage
+|   │       ├── pipeline.py                    # End-to-end orchestration logic for RAG using Flytekit (@workflow)
+|   │       └── retriever.py                   # Vector + metadata search; should emit QPS and latency metrics
+|   │
+|   ├── evaluation/
+|   │   ├── Dockerfile                         # Container for RAG evaluation service using RAGAS
+|   │   ├── DynamicRayServiceGenerator.py      # Generates Ray Service definitions for evaluation pipeline
+|   │   ├── main.py                            # Entrypoint for container: orchestrates evaluation via Flytekit (@task/@workflow)
+|   │   └── modules/
+|   │       ├── __init__.py                    # Marks modules as a Python package
+|   │       ├── eval_pipeline.py               # Coordinates scoring of RAG outputs; log success/failure stats
+|   │       └── trulens_wrapper.py             # Integrates with trulens metrics; ideal point for OpenLLMetry tracing
+|   │
+|   ├── api/                                   # API module for frontend + backend inference API and orchestration
+|   │   ├── frontend/                          # React frontend for user interaction, served separately from backend
+|   │   │   ├── DynamicRayServiceGenerator.py  # Generates Ray Service definitions for frontend CI/CD if needed
+|   │   │   ├── Dockerfile                     # Builds React app using multi-stage build; outputs static assets
+|   │   │   ├── vite.config.ts                 # Vite config for local dev and optimized build
+|   │   │   ├── index.html                     # Main HTML template for React root
+|   │   │   ├── package.json                   # Frontend dependencies and build scripts
+|   │   │   └── src/
+|   │   │       ├── main.tsx                   # React app entry point
+|   │   │       ├── App.tsx                    # Root component with routing
+|   │   │       ├── api.ts                     # Axios wrapper with Supabase token support
+|   │   │       ├── components/
+|   │   │       │   ├── Header.tsx             # Header/navigation bar
+|   │   │       │   └── FileUploader.tsx       # Upload UI component
+|   │   │       ├── pages/
+|   │   │       │   ├── Search.tsx             # Semantic search page
+|   │   │       │   ├── Generate.tsx           # Prompt-based generation page
+|   │   │       │   └── Login.tsx              # Supabase OAuth login page
+|   │   │       └── styles/
+|   │   │           └── main.css               # Tailwind/custom CSS
+|   │   └── main.py                            # Orchestration entrypoint if frontend needs Flyte-triggered actions
+|   │
+|   │   ├── backend/                           # Backend API for inference: FastAPI + Flyte integration
+|   │   │   ├── Dockerfile                     # Backend Dockerfile with FastAPI + Flytekit deps
+|   │   │   ├── DynamicRayServiceGenerator.py  # Ray Serve config generator for backend API
+|   │   │   ├── app-api.argo.yml               # Argo CD App manifest for GitOps sync
+|   │   │   ├── __init__.py                    # Makes backend a Python package
+|   │   │   ├── main.py                        # FastAPI app entry; triggers Flyte tasks as needed
+|   │   │   ├── dependencies/                  # Common config/auth/DB logic
+|   │   │   │   ├── __init__.py                # Package marker
+|   │   │   │   ├── config.py                  # Loads envs via `os.getenv` or `pydantic.BaseSettings`
+|   │   │   │   ├── auth_postgres.py           # Supabase JWT auth and user extraction
+|   │   │   │   └── tables/
+|   │   │   │       ├── __init__.py            # Binds engine, metadata, migrations
+|   │   │   │       ├── user.py                # User model with ID/email/roles
+|   │   │   │       ├── session.py             # Session token + expiry info
+|   │   │   │       ├── feedback.py            # Stores RAG/LLM feedback (thumbs, corrections)
+|   │   │   │       └── query_log.py           # Tracks queries, usage, and logs
+|   │   │   └── routes/                        # FastAPI endpoints organized by domain
+|   │   │       ├── __init__.py                # Package marker
+|   │   │       ├── embedding.py               # Handles text/file → embedding + vector DB insert
+|   │   │       ├── generate.py                # Handles prompt → Flyte workflow → LLM output
+|   │   │       ├── health.py                  # Health checks for K8s probes
+|   │   │       ├── job.py                     # Chunking, ingest, Flyte job triggering
+|   │   │       └── search.py                  # Semantic search, returns chunk + source S3 URI
+|   │
+|   └── README.md                              # Docs for inference pipeline, API, and frontend
 |
 ├── tests                                      # Test suite
 │   ├── __init__.py                            # Makes tests a Python module
