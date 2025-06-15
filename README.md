@@ -4,8 +4,8 @@
 
 
 ```py
-AutoOpsScaler/ 
-📦 AutoOpsScaler/infra/
+AutoOpsScaler/
+infra/
 ├── generated_manager.py                  #  Manages versioned YAML output snapshots for reproducibility
 ├── provider.py                           #  Constructs AWS and K8s Pulumi providers from Typer CLI args
 
