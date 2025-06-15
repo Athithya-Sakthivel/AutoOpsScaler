@@ -206,11 +206,11 @@ AutoOpsScaler/
 │   ├── app-vector.argocd.yaml                 # Argo CD manifest for Qdrant ingestion
 │   └── dynamic_StatefulSet_pvc_svc_generator.py # Generates StatefulSet/PVC/Service manifests for Qdrant
 │
-├── postgres                                   # Supabase/Postgres metadata service code
-│   ├── modules                                # Supabase service modules
+├── postgres                                   # Postgres metadata service code
+│   ├── modules                                # postgres service modules
 │   │   ├── __init__.py                        # (module marker)
-│   │   ├── insert_metadata.py                 # Inserts document metadata into Supabase
-│   │   ├── query_metadata.py                  # Fetches metadata from Supabase
+│   │   ├── insert_metadata.py                 # Inserts document metadata into postgres
+│   │   ├── query_metadata.py                  # Fetches metadata from postgres
 │   │   └── postgres_client.py                 # postgres client logic for DB operations
 │   ├── Dockerfile                             # Container for postgres metadata operations
 │   ├── app-postgres.argocd.yaml               # Argo CD manifest for postgres service
@@ -263,7 +263,7 @@ AutoOpsScaler/
 |   │   │       └── styles/
 |   │   │           └── main.css               # Tailwind/custom CSS
 |   │   └── main.py                            # Orchestration entrypoint if frontend needs Flyte-triggered actions
-|   │
+|   │   |
 |   │   ├── backend/                           # Backend API for inference: FastAPI + Flyte integration
 |   │   │   ├── Dockerfile                     # Backend Dockerfile with FastAPI + Flytekit deps
 |   │   │   ├── DynamicRayServiceGenerator.py  # Ray Serve config generator for backend API
