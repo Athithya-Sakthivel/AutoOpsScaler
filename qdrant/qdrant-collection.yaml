@@ -1,0 +1,9 @@
+apiVersion: qdrant.operator/v1alpha1
+kind: QdrantCollection
+metadata:
+  name: prod-embedding-store
+spec:
+  collectionName: embedding_store
+  vectors:
+    size: 1536
+    distance: Cosine

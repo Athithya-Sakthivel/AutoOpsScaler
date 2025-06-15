@@ -1,1 +1,0 @@
-# Pulumi stack export definitions

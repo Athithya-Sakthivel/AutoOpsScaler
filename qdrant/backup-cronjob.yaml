@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: qdrant-backup
+spec:
+  schedule: "0 2 * * *"  # daily at 02:00 UTC
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: backup
+              image: amazon/aws-cli:latest
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  tar czf /tmp/qdrant-$(date +%F).tar.gz /qdrant/storage && \
+                  aws s3 cp /tmp/qdrant-$(date +%F).tar.gz s3://your-bucket/qdrant/
+              volumeMounts:
+                - name: data
+                  mountPath: /qdrant/storage
+          restartPolicy: OnFailure
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: qdrant-storage-qdrant-0

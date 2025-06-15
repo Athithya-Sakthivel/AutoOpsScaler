@@ -54,5 +54,19 @@ pulumi version
 echo "[INFO] Installing Pulumi AWS plugin v5.44.0..."
 # You can pre-install this so `pulumi up` doesn’t pull on first run
 pulumi plugin install resource aws v5.44.0 --yes
+# Install required packages (safe and idempotent)
+sudo apt update && sudo apt install -y unzip curl groff less
+
+# Download AWS CLI v2.13.21 (64-bit Linux installer)
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.13.21.zip" -o "awscliv2.zip"
+
+# Unzip the installer
+unzip -q awscliv2.zip
+
+# Install or update (idempotent and safe)
+sudo ./aws/install --update
+
+# Verify exact version
+aws --version
 
 echo "[SUCCESS] Bootstrap completed successfully."

@@ -1,1 +1,0 @@
-# IAM module initializer

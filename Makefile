@@ -70,3 +70,7 @@ infra-check:
 	python -m config.generate_infra.main --env dev
 	bash base_infra/regen_all.sh
 	git diff --exit-code
+
+
+base-infra-prod:
+	python3 base_infra/config_generator.py

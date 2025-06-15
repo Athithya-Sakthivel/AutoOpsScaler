@@ -1,0 +1,48 @@
+# override.yml — production overrides for QdrantCluster
+replicas: 3
+serviceType: LoadBalancer
+
+volumeClaimTemplates:
+  - metadata:
+      name: storage
+    spec:
+      storageClassName: gp3
+      accessModes: [ReadWriteOnce]
+      resources:
+        requests:
+          storage: 200Gi
+
+resources:
+  requests:
+    cpu: "2"
+    memory: "8Gi"
+  limits:
+    cpu: "4"
+    memory: "16Gi"
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - qdrant
+          topologyKey: "kubernetes.io/hostname"
+
+livenessProbe:
+  httpGet:
+    path: /ready
+    port: 6333
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: 6333
+  initialDelaySeconds: 5
+  periodSeconds: 5
