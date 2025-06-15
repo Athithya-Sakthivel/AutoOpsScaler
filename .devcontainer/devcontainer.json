@@ -10,7 +10,7 @@
     "--privileged"
   ],
 
-  // ✅ Universal mounts (no duplicate workspace)
+  //  Universal mounts (no duplicate workspace)
   "mounts": [
     // Shared cache for Python, Pip, etc.
     "source=llmops-cache,target=/root/.cache,type=volume",
@@ -31,15 +31,10 @@
   "customizations": {
     "vscode": {
       "settings": {
-        "terminal.integrated.defaultProfile.linux": "bash",
-        "remote.containers.logLevel": "trace"
+        "terminal.integrated.defaultProfile.linux": "bash"
       }
     }
   },
 
-  "remoteEnv": {
-    "DEBUG": "true"
-  },
-
-  "postCreateCommand": "echo '✅ Container ready'"
+  "postCreateCommand": "echo '✅ Container ready', close all terminals"
 }
