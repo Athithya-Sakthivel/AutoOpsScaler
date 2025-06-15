@@ -214,12 +214,12 @@ AutoOpsScaler/
 │   │   └── postgres_client.py                 # postgres client logic for DB operations
 │   ├── Dockerfile                             # Container for postgres metadata operations
 │   ├── app-postgres.argocd.yaml               # Argo CD manifest for postgres service
-│   └── dynamic_StatefulSet_pvc_svc_generator.py # Generates StatefulSet/PVC/Service manifests for Supabase
-│
-├── fine_tuning                                # Fine-tuning pipeline code
+│   └── dynamic_StatefulSet_pvc_svc_generator.py # Zalando Postgres Operator to self host postgres db in eks
+|
+├── fine_tuning/                                # Fine-tuning pipeline code
 │   ├── README.md                              # Documentation for fine-tuning procedures
 │   ├── DynamicRayJobGenerator.py              # Generates Ray Job definitions for fine-tuning pipeline 
-│   └── fine_tune.py   # Script to fine-tune a model via Qlora/DeepSpeed and save in S3 (entrypoint can invoke Flyte tasks/workflows if applicable)
+│   └── fine_tune.py           # Script to fine-tune a model via Qlora/DeepSpeed and save in S3 (entrypoint can invoke Flyte tasks/workflows if applicable)
 │
 |── inference_pipeline/                        # Inference pipelines (RAG, evaluation, API)
 |   ├── rag/
