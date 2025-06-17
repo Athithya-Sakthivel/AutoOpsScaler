@@ -53,51 +53,19 @@ git config --global core.autocrlf false
 git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler.git
 cd AutoOpsScaler
 vagrant up
-```
-
-2. **Set up SSH config:**
-
-```bash
 bash ssh.sh
 ```
 
 ---
 
-### 🖥️ **Connect with VS Code (recommended)**
-
+### 🖥️ **Connect with VS Code (Alternative)**
+0. vagrant up
 1. Open VS Code on your laptop.
 2. Install the **Remote - SSH** extension (if not done).
 3. Click the green icon in the bottom-left, or `Ctrl+Shift+P` → **Remote-SSH: Connect to Host**.
 4. Pick **`AutoOpsScaler`**.
 5. When prompted for platform, **select `Linux`** (your VM runs Linux).
-
-VS Code will:
-✅ Connect via SSH
-✅ Install the VS Code server
-✅ Open a remote workspace
-
----
-
-### ✅ **You’re all set!**
-
-Next time, just do:
-
 ```bash
-vagrant up
-bash ssh.sh
-```
-
-and connect with **VS Code Remote SSH**.
-
----
-
-## ⚡ **Tips**
-
-* To work directly inside the VM:
-
-  ```bash
-  ssh AutoOpsScaler
   cd /vagrant/ && code .
-  ```
-* Or just use open VSCode — it does this for you!
+```
 
