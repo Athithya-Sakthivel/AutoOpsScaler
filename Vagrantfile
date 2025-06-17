@@ -2,7 +2,7 @@ Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/jammy64"
   config.vm.box_version = "20241002.0.0"
 
-  # ⚡ Use rsync for faster file access
+  # Use rsync for faster file access
   config.vm.synced_folder ".", "/vagrant", type: "rsync"
 
   # Keep the same SSH key for stable Remote SSH
@@ -10,7 +10,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.provider "virtualbox" do |vb|
     vb.memory = 11000
-    vb.cpus = 8
+    vb.cpus = 6
     vb.gui = false
   end
 

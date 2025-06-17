@@ -260,28 +260,11 @@ cd $HOME && git config --global core.autocrlf false && git clone https://github.
 
 ---
 
-## **Connecting via Visual Studio Code (Alternative method)**
-
-1. Run `vagrant up` (if the VM is not already running).
-2. Open Visual Studio Code on your local machine.
-3. Install the **Remote - SSH** extension (if not already installed).
-4. Click the green icon in the lower-left corner, or press `Ctrl+Shift+P` and paste **Remote-SSH: Connect to Host**.
-5. Choose **`AutoOpsScaler`** from the list.
-6. When prompted for the platform, select **Linux** (the VM runs Linux).
-
-To open the project in VS Code, run:
-
-```bash
-cd /vagrant/ && code .
-```
-
----
-
 ## **Important: VM Lifecycle**
 
  ### **After a system reboot**, the VM will be shut down. Always start it manually before connecting from VS Code:
 
-  * Open VirtualBox → Right-click the VM → **Start → Headless Start**
+  * Open VirtualBox → Right-click the VM → **Start → Headless Start and wait atleast 1 min before opening vscode**
 
   ![Start the VM](.vscode/Start_the_VM.png)
 
