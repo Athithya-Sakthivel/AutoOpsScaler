@@ -252,7 +252,7 @@ A full Linux setup is required (do **not** use Docker Desktop, WSL,devcontainers
 
 ## **Restart your system and get started**
 
-> Open a **Git Bash** terminal and run the following command. The first run will take longer(20-30 minutes) as the Ubuntu Jammy VM box will be downloaded. 
+> Open a **Git Bash** terminal and run the following command. The first run will take longer(20-30 minutes) as the Ubuntu Jammy VM will be downloaded. 
 
 ```bash
 cd $HOME && git config --global core.autocrlf false && git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler.git && cd AutoOpsScaler && vagrant up && bash scripts/ssh.sh
