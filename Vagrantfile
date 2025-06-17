@@ -15,7 +15,6 @@ Vagrant.configure("2") do |config|
   end
 
   config.vm.provision "shell", inline: <<-SHELL
-    set -euxo pipefail
     sudo apt-get update -y
     sudo apt-get install -y --no-install-recommends \
       build-essential \
