@@ -16,6 +16,7 @@
 
 ---
 
+
 ## **AutoOpsScaler** significantly reduces manual complexity by providing a declarative, fully automated backend for KubeRay on EKS + Karpenter, along with a highly modular AI stack to run production workloads from day one — all built with modern tools and best practices.
 
 * **Provisions infrastructure:** VPC, EKS, Karpenter, IAM, networking
@@ -69,12 +70,12 @@ AutoOpsScaler/
 |   ├── 08_qdrant/
 |   │   ├── __main__.py                 # Loads & validates qdrant.yml, deploys Qdrant StatefulSet & PVC
 |   │   └── qdrant.py                   # Helper functions for Qdrant resource management
-|   └── 09_ingress/
-|       ├── __main__.py                 # Loads & validates ingress.yml, deploys Traefik IngressRoutes
-|       └── ingress.py                  # Helper functions for Traefik Ingress configuration
+|   ├── 09_ingress/
+|   │   ├── __main__.py                 # Loads & validates ingress.yml, deploys Traefik IngressRoutes
+|   │   └── ingress.py                  # Helper functions for Traefik Ingress configuration
+|   ├── pulumi.yaml                     # Pulumi project metadata: name, runtime, and backend
+|   └── Pulumi.prod.yaml                # Production stack config: region, cluster name, scaling limits
 |
-|── pulumi.yaml                         # Pulumi project metadata: name, runtime, and backend
-|── Pulumi.prod.yaml                    # Production stack config: region, cluster name, scaling limits
 |── Makefile                            # Unified commands for validate, build, and deploy workflows
 |
 |── utils/                              # Shared utility functions and helpers
@@ -84,67 +85,61 @@ AutoOpsScaler/
 |   ├── logger.py                       # Centralized structured logging setup
 |   └── s3_util.py                      # Helper functions for S3 upload/download with boto3
 |
-|── storage/                            # Local mirror of S3 bucket structure for syncing
-|   ├── data/
-|   │   ├── raw/                        # Original, unprocessed data files
-|   │   ├── processed/
-|   │   │   ├── chunked/               # Text chunks after preprocessing
-|   │   │   └── parsed/                # Parsed documents from raw files
-|   │   └── db_backups/
-|   │       ├── qdrant_backups/        # Qdrant database snapshot files
-|   │       └── postgres_backups/      # Postgres database dump files
-|   └── observability/                 # Local snapshots of monitoring data
+├── flux/
+│   ├── base/
+│   │   ├── ray_service.yaml      # inference pipeline: always-on
+│   │   ├── ray_job.yaml          # indexing pipeline: batch job
+│   │   ├── namespace.yaml        # common namespace
+│   │   ├── secrets.yaml          # cluster secrets (K8s Secret)
+│   │   ├── configmap.yaml        # non-secret configs
+│   │   ├── kustomization.yaml    # entrypoint
+│   └── overlays/
+│       ├── dev/
+│       │   └── kustomization.yaml  # dev env-specific patch
+│       └── prod/
+│           └── kustomization.yaml  # prod env-specific patch
+│
+├── indexing_pipeline/                     # Unified indexing pipeline: ELT (CPU) + Embedding (GPU)
+│   ├── modules/                           # Python modules for extraction, processing, embedding
+│   │   ├── __init__.py                    # Declares modules as a Python package
+│   │   ├── extract_load/                  # Extract and load raw data in s3:/<bucket>/data/raw/
+│   │   │   ├── __init__.py                # Declares extract_load as a subpackage
+│   │   │   ├── file_watcher.py            # Watches local/S3 folders; triggers uploads
+│   │   │   ├── llamaindex_loader.py       # Uses LlamaIndex to load and dedupe documents
+│   │   │   ├── s3_uploader.py             # Uploads raw files to S3 with boto3
+│   │   │   ├── web_scraper.py             # Scrapy+Playwright scraper with deduplication logic
+│   │   │   ├── Dockerfile                 # Builds extract/load container image with Ray and Prefect
+│   │   │   ├── requirements.txt           # Python dependencies for extract/load container
+│   │   │   └── README.md                  # Workflow docs: extract and load stages
+│   │   ├── data_processing/               # Detects file types via unstructured.io; cleans & chunks text
+│   │   │   ├── __init__.py                # Declares data_processing as a subpackage
+│   │   │   ├── chunker_llamaindex.py      # Splits text into chunks; records latency metrics
+│   │   │   ├── doc_parser.py              # Parses files with unstructured.io; logs tracing info
+│   │   │   ├── filters.py                 # Filters out noise; tracks retention ratios
+│   │   │   ├── format_normalizer.py       # Cleans text metadata; logs standardization stats
+│   │   │   ├── html_parser.py             # HTML parsing via trafilatura; logs malformed docs
+│   │   │   ├── Dockerfile                 # Builds preprocessing container image with Prefect
+│   │   │   ├── requirements.txt           # Python dependencies for preprocessing container
+│   │   │   └── README.md                  # Docs: parsing heuristics and chunking strategies
+│   │   └── embedding/                     # Batch embedding tasks; GPU intensive
+│   │       ├── __init__.py                # Declares embedding as a subpackage
+│   │       ├── batch_embed.py             # Prefect flow for batch embedding with metrics
+│   │       ├── model_loader.py            # Loads and caches SentenceTransformer models
+│   │       ├── insert_metadata.py         # Persists document metadata into Postgres
+│   │       ├── embed_to_qdrant.py         # Pushes embeddings to Qdrant; logs latency/stats
+│   │       ├── worker.py                  # Task-level embedding logic emitting performance spans
+│   │       ├── Dockerfile                 # Builds embedding container with Prefect and Ray libs
+│   │       ├── requirements.txt           # Python dependencies for embedding container
+│   │       └── README.md                  # Docs: embedding pipeline design and metrics
+|   |
+│   ├── main.py                            # Orchestrates the full indexing pipeline via Prefect flows/tasks: runs CPU and GPU jobs via Ray
+│   └── indexing_pipeline_config.yml       # Central config: stages, resource params, cluster hints for both ETL and embedding
 |
-|── ELT/                                # Extract‑Load‑Transform pipeline (CPU‑based RayJob)
-|   ├── modules/                        # Python modules for extraction, loading, and parsing
-|   │   ├── __init__.py                 # Declares ELT.modules as a Python package
-|   │   ├── extract_load/               # Extract and load raw data in s3:/<bucket>/data/raw/ to return object urls during RAG inference
-|   │   │   ├── __init__.py             # Declares extract_load as a subpackage
-|   │   │   ├── file_watcher.py         # Watches local/S3 folders; triggers uploads
-|   │   │   ├── llamaindex_loader.py    # Uses LlamaIndex to load and dedupe documents
-|   │   │   ├── s3_uploader.py          # Uploads raw files to S3 with boto3
-|   │   │   ├── web_scraper.py          # Scrapy+Playwright scraper with deduplication logic via hashlib
-|   │   │   ├── Dockerfile              # Builds ELT container image with Ray and Prefect
-|   │   │   ├── requirements.txt        # Python dependencies for ELT container
-|   │   │   └── README.md               # Workflow docs: extract and load stages
-|   │   ├── data_processing/            # Auto detects file types via unstructured.io and processes anything in s3:/<bucket>/data/raw/
-|   │   │   ├── __init__.py             # Declares data_preprocessing as a subpackage
-|   │   │   ├── chunker_llamaindex.py   # Splits text into chunks; records latency metrics
-|   │   │   ├── doc_parser.py           # Parses files with unstructured.io; logs tracing info
-|   │   │   ├── filters.py              # Filters out noise; tracks retention ratios
-|   │   │   ├── format_normalizer.py    # Cleans text metadata; logs standardization stats
-|   │   │   ├── html_parser.py          # HTML parsing via trafilatura; logs malformed docs
-|   │   │   ├── Dockerfile              # Builds preprocessing container image with Prefect
-|   │   │   ├── requirements.txt        # Python dependencies for preprocessing container
-|   │   │   └── README.md               # Docs: parsing heuristics and chunking strategies
-|   ├── app-elt.argocd.yaml             # Argo CD manifest for ELT pipeline deployment
-|   ├── DynamicRayJobGenerator.py       # Generates Ray Job CRD specs at runtime
-|   ├── ELT_config.yml                  # Central config file for ELT pipeline stages
-|   └── main.py                         # Orchestrates ELT stages via Prefect flows/tasks
-|
-|── indexing/                           # Embedding pipeline (GPU‑based RayJob)
-|   ├── modules/                       # Python modules for batch embedding and metadata
-|   │   ├── __init__.py                 # Declares embedding.modules as a Python package
-|   │   ├── batch_embed.py              # Prefect flow for batch embedding with metrics
-|   │   ├── main.py                    # Entrypoint: orchestrates embedding via Prefect
-|   │   ├── model_loader.py             # Loads and caches SentenceTransformer models
-|   │   ├── insert_metadata.py          # Persists document metadata into Postgres
-|   │   ├── embed_to_qdrant.py          # Pushes embeddings to Qdrant; logs latency/stats
-|   │   ├── worker.py                   # Task-level embedding logic emitting performance spans
-|   │   ├── Dockerfile                  # Builds embedding container with Prefect and Ray libs
-|   │   └── requirements.txt            # Python dependencies for embedding container
-|   ├── app-embedding.argocd.yaml       # Argo CD manifest for embedding pipeline
-|   ├── indexing_config.yml             # Central config file for indexing pipeline
-|   └── DynamicRayJobGenerator.py       # Generates Ray Job specs dynamically at runtime
-|
-|
-|── inference_pipeline/                             # RayServices for high scaling inference
+|── inference_pipeline/                          # RayServices for high scaling inference
 |   ├── rag/                                     # Core RAG orchestration with integrated evaluation
 |   │   ├── Dockerfile                           # Container image build for RAG + eval flows
 |   │   ├── requirements.txt                     # Python dependencies for RAG + eval container
-|   │   ├── DynamicRayServiceGenerator.py          # Dynamically creates Ray Service specs for RAG cluster
-|   │   ├── app-rag.argocd.yaml                  # ArgoCD manifest for RAG and evaluation services
-|   |   ├── rag_config.yml                       # Central config file for RAG pipeline
+|   │   ├── rag_config.yml                       # Central config file for RAG pipeline
 |   │   ├── main.py                              # Entrypoint: runs Prefect flows for RAG and eval
 |   │   └── modules/                             # RAG internal modules for retrieval, generation, and metrics
 |   │       ├── __init__.py                      # Declares rag.modules as a Python package
@@ -153,55 +148,49 @@ AutoOpsScaler/
 |   │       ├── retriever.py                     # Vector DB search and chunk retrieval logic
 |   │       ├── eval_pipeline.py                 # Quality evaluation pipeline using RAGAS/trulens or custom metrics
 |   │       └── ragas_wrapper.py                 # Adapter for invoking RAGAS/trulens evaluation and tracing APIs
-|   |   
-|   └── api/                                    # User-facing API and web interface
-|       ├── frontend/                           # React frontend application for RAG interaction
-|       │   ├── DynamicRayServiceGenerator.py         # Generates Ray Service specs for frontend
-|       │   ├── Dockerfile                      # Builds frontend using Vite and React
-|       │   ├── requirements.txt                # Node/Python dependencies for frontend container (if any)
-|       │   ├── vite.config.ts                  # Vite configuration for development and production
-|       │   ├── index.html                      # HTML template for mounting React app
-|       │   ├── package.json                    # Frontend dependencies and build scripts
-|       │   └── src/                            # Frontend source files
-|       │       ├── main.tsx                    # App entry point mounting the root component
-|       │       ├── App.tsx                     # Root React component with routing logic
-|       │       ├── api.ts                      # Axios client configured with Postgres JWT auth
-|       │       ├── components/                 # Reusable UI component library
-|       │       │   ├── Header.tsx              # Top navigation bar component
-|       │       │   └── FileUploader.tsx          # Drag‑and‑drop file uploader component
-|       │       ├── pages/                      # Routed page components
-|       │       │   ├── Search.tsx              # Semantic search UI and logic
-|       │       │   ├── Generate.tsx            # LLM prompt submission and display
-|       │       │   └── Login.tsx               # User login page with Postgres JWT authentication
-|       │       └── styles/                     # Global styling resources
-|       │           └── main.css                # Application‑wide CSS or Tailwind configuration
-|       |
-|       └── backend/                           # FastAPI backend serving frontend and orchestration APIs
-|           ├── Dockerfile                     # Builds backend container with FastAPI and Prefect client
-|           ├── requirements.txt               # Python dependencies for backend container
-|           ├── DynamicRayServiceGenerator.py  # Generates Ray Serve specs for backend
-|           ├── app-api.argocd.yaml             # ArgoCD manifest for backend deployment
+|   └── api/                                     # User-facing API and web interface
+|       ├── frontend/                            # React frontend application for RAG interaction (not scaled by Ray)
+|       │   ├── Dockerfile                       # Builds frontend using Vite and React
+|       │   ├── requirements.txt                 # Node/Python dependencies for frontend container (if any)
+|       │   ├── vite.config.ts                   # Vite configuration for development and production
+|       │   ├── index.html                       # HTML template for mounting React app
+|       │   ├── package.json                     # Frontend dependencies and build scripts
+|       │   └── src/                             # Frontend source files
+|       │       ├── main.tsx                     # App entry point mounting the root component
+|       │       ├── App.tsx                      # Root React component with routing logic
+|       │       ├── api.ts                       # Axios client configured with Postgres JWT auth
+|       │       ├── components/                  # Reusable UI component library
+|       │       │   ├── Header.tsx               # Top navigation bar component
+|       │       │   └── FileUploader.tsx         # Drag‑and‑drop file uploader component
+|       │       ├── pages/                       # Routed page components
+|       │       │   ├── Search.tsx               # Semantic search UI and logic
+|       │       │   ├── Generate.tsx             # LLM prompt submission and display
+|       │       │   └── Login.tsx                # User login page with Postgres JWT authentication
+|       │       └── styles/                      # Global styling resources
+|       │           └── main.css                 # Application‑wide CSS or Tailwind configuration
+|       └── backend/                             # FastAPI backend serving frontend and orchestration APIs
+|           ├── Dockerfile                       # Builds backend container with FastAPI and Prefect client
+|           ├── requirements.txt                 # Python dependencies for backend container
 |           ├── backend_config.yml               # Central config file for backend pipeline
-|           ├── __init__.py                     # Declares backend as a Python package
-|           ├── main.py                         # FastAPI entrypoint registering all routes
-|           ├── dependencies/                   # Shared modules: config, auth, ORM schemas
-|           │   ├── __init__.py                 # Declares dependencies as a Python module
-|           │   ├── config.py                   # Loads env vars, DB URI, and application settings
-|           │   ├── auth_postgres.py            # JWT validation against Postgres session store
-|           │   └── tables/                     # SQLAlchemy ORM models for database tables
-|           │       ├── __init__.py             # Declares tables as a Python subpackage
-|           │       ├── user.py                 # 'User' model schema and helper methods
-|           │       ├── session.py              # 'Session' model for JWT sessions and expiry
-|           │       ├── feedback.py             # 'Feedback' model for user ratings and corrections
-|           │       └── query_log.py            # 'QueryLog' model for auditing and analytics
-|           |
-|           └── routes/                         # FastAPI route handlers grouped by feature
-|               ├── __init__.py                 # Declares routes as a module
-|               ├── embedding.py                # Embeddings generation endpoint
-|               ├── generate.py                 # LLM generation endpoint
-|               ├── health.py                   # Health and readiness probes
-|               ├── job.py                      # Endpoints for triggering background jobs
-|               └── search.py                   # Semantic search query endpoint
+|           ├── __init__.py                      # Declares backend as a Python package
+|           ├── main.py                          # FastAPI entrypoint registering all routes
+|           ├── dependencies/                    # Shared modules: config, auth, ORM schemas
+|           │   ├── __init__.py                  # Declares dependencies as a Python module
+|           │   ├── config.py                    # Loads env vars, DB URI, and application settings
+|           │   ├── auth_postgres.py             # JWT validation against Postgres session store
+|           │   └── tables/                      # SQLAlchemy ORM models for database tables
+|           │       ├── __init__.py              # Declares tables as a Python subpackage
+|           │       ├── user.py                  # 'User' model schema and helper methods
+|           │       ├── session.py               # 'Session' model for JWT sessions and expiry
+|           │       ├── feedback.py              # 'Feedback' model for user ratings and corrections
+|           │       └── query_log.py             # 'QueryLog' model for auditing and analytics
+|           └── routes/                          # FastAPI route handlers grouped by feature
+|               ├── __init__.py                  # Declares routes as a module
+|               ├── embedding.py                 # Embeddings generation endpoint
+|               ├── generate.py                  # LLM generation endpoint
+|               ├── health.py                    # Health and readiness probes
+|               ├── job.py                       # Endpoints for triggering background jobs
+|               └── search.py                    # Semantic search query endpoint
 |
 |── tests/                                # Test suite for all components
 |   ├── __init__.py                       # Marks tests as a Python module

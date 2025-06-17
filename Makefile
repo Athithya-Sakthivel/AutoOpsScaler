@@ -1,4 +1,4 @@
-.PHONY: install
+.PHONY: install login force-pull pull push lc lc-status delete-lc rebase-continue tree clean
 
 install:
 	@chmod +x scripts/bootstrap.sh && ./scripts/bootstrap.sh
@@ -7,31 +7,15 @@ install:
 		pip install --upgrade pip && \
 		pip install --upgrade -r requirements.txt
 
-
-
 login:
 	bash scripts/login.sh
 
-full-force:
-	git fetch --prune                    # Sync and clean remote refs
+force-pull:
+	git fetch --prune                       # Sync and clean remote refs
 	git stash push -m "auto-stash" || true  # Stash local changes if any
-	git pull --rebase --autostash        # Pull with rebase, auto-apply stashed changes
-	git stash drop || true               # Drop auto-stash if it was created
-	git status                           # Show current state
-
-push:
-	git add .
-	git commit -m "update"
-	git push
-	
-
-lc:
-	chmod +x base_infra/cluster_bootstrap.sh && sudo bash base_infra/cluster_bootstrap.sh dev
-	sudo systemctl enable k3s
-
-
-delete-lc:
-	chmod +x base_infra/delete_dev_cluster.sh && sudo bash base_infra/delete_dev_cluster.sh
+	git pull --rebase --autostash           # Pull with rebase, auto-apply stashed changes
+	git stash drop || true                  # Drop auto-stash if it was created
+	git status                              # Show current state
 
 pull:
 	@if [ -d .git/rebase-merge ]; then \
@@ -41,15 +25,28 @@ pull:
 	git fetch origin
 	git rebase origin/main
 
-rebase-continue:
+
+push:
 	git add .
-	git rebase --continue
+	git commit -m "update"
+	git push
+	
+
+lc:
+	chmod +x base_infra/local_cluster.sh && sudo bash base_infra/local_cluster.sh
 
 lc-status:
 	k3s kubectl get nodes
 
+delete-lc:
+	chmod +x base_infra/delete_dev_cluster.sh && sudo bash base_infra/delete_dev_cluster.sh
+
+rebase-continue:
+	git add .
+	git rebase --continue
+
 tree:
-	\tree -a --prune -I '.git|.vagrant|__pycache__|.pulumi|.mypy_cache|.pytest_cache|.venv|.vscode' --dirsfirst -L 5
+	\tree -a --prune -I '.git|.vagrant|__pycache__|.pulumi|.mypy_cache|.pytest_cache|.venv|.vscode|storage' --dirsfirst -L 5
 
 clean:
 	find . -type d -name '__pycache__' -exec rm -rf {} + && find . -type f -name '*.py[co]' -delete
