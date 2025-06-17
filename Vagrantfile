@@ -6,10 +6,10 @@ Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/jammy64"
   config.vm.box_version = "20241002.0.0"
 
-  # Mount the current host working directory to /vagrant
+  # Mount current folder to /vagrant
   config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
 
-  #  Let Vagrant generate a fresh key each time (more secure & hassle-free)
+  # Always insert a unique SSH key for better security
   config.ssh.insert_key = true
 
   # VM resources
@@ -19,21 +19,14 @@ Vagrant.configure("2") do |config|
     vb.gui = false
   end
 
-  # Forward essential ports  
-  [
-    8265,  # Ray Dashboard
-    8001,  # kubectl proxy
-  ].each do |port|
+  # Forward commonly used ports
+  [8265, 8001].each do |port|
     config.vm.network "forwarded_port", guest: port, host: port, auto_correct: true
   end
 
-  # Provision base tools
+  # Basic provisioning
   config.vm.provision "shell", inline: <<-SHELL
     set -euxo pipefail
-    cd /vagrant
-    rm -rf ~/.config/VirtualBox       # Linux
-    rm -rf ~/Library/VirtualBox 
-
     sudo apt-get update -y
     sudo apt-get install -y --no-install-recommends \
       build-essential \
