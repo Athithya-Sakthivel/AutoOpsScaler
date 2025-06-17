@@ -46,7 +46,6 @@ AutoOpsScaler/
 |   ├── secrets.yml                     # Template for Secrets Manager entries or external ARNs
 |   ├── zalando_operator.yml            # Zalando Postgres Operator CRD and database cluster spec
 |   ├── qdrant.yml                      # Qdrant StatefulSet, EBS PVC, and Service manifest
-|   ├── ingress.yml                     # Traefik IngressRoutes and Middleware definitions
 |   └── README.md                       # Guidelines for writing and validating config files
 |
 |── base_infra/                         # Pulumi modules for validating configs and provisioning infra
@@ -64,7 +63,7 @@ AutoOpsScaler/
 |   │   └── karpenter.py                # Helper functions for Karpenter Provisioner logic
 |   ├── 05_observability/
 |   │   ├── __main__.py                 # Loads & validates observability.yml, deploys monitoring stack
-|   │   └── observability.py            # Helper functions for Prometheus/Grafana deployment
+|   │   └── observability.py            # Helper functions for Prometheus/Grafana deployment for eks, RayJob, RayService
 |   ├── 06_secrets/
 |   │   ├── __main__.py                 # Loads & validates secrets.yml, provisions Secrets Manager entries
 |   │   └── secrets.py                  # Helper functions for secrets handling
@@ -74,9 +73,6 @@ AutoOpsScaler/
 |   ├── 08_qdrant/
 |   │   ├── __main__.py                 # Loads & validates qdrant.yml, deploys Qdrant StatefulSet & PVC
 |   │   └── qdrant.py                   # Helper functions for Qdrant resource management
-|   ├── 09_ingress/
-|   │   ├── __main__.py                 # Loads & validates ingress.yml, deploys Traefik IngressRoutes
-|   │   └── ingress.py                  # Helper functions for Traefik Ingress configuration
 |   ├── pulumi.yaml                     # Pulumi project metadata: name, runtime, and backend
 |   └── Pulumi.prod.yaml                # Production stack config: region, cluster name, scaling limits
 |
@@ -87,9 +83,11 @@ AutoOpsScaler/
 │   │   ├── ray_service.yaml      # inference pipeline: always-on
 │   │   ├── ray_job.yaml          # indexing pipeline: batch job
 │   │   ├── namespace.yaml        # common namespace
-│   │   ├── secrets.yaml          # cluster secrets (K8s Secret)
+│   │   ├── k8s-secrets.yaml      # cluster secrets 
 │   │   ├── configmap.yaml        # non-secret configs
 │   │   ├── kustomization.yaml    # entrypoint
+│   |   └── ingress.yml           # IngressRoute + Middleware traefik CRDs
+|   |
 │   └── overlays/
 │       ├── dev/
 │       │   └── kustomization.yaml  # dev env-specific patch
