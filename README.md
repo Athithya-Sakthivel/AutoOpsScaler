@@ -33,6 +33,10 @@
 
 ```py
 AutoOpsScaler/
+|── .github/                              # GitHub Actions workflows
+|   └── workflows/
+|       └── ci.yml                        # CI pipeline: lint, tests, and Makefile integration
+|
 |── base_configs/                       # Declarative source‑of‑truth configs for core infrastructure
 |   ├── iam.yml                         # Defines IAM roles, policies, and trust relationships
 |   ├── vpc.yml                         # Specifies VPC CIDRs, subnets, NAT gateways, and Internet Gateway
@@ -81,7 +85,7 @@ AutoOpsScaler/
 |── utils/                              # Shared utility functions and helpers
 |   ├── README.md                       # Documentation for utility modules
 |   ├── __init__.py                     # Marks the utils directory as a Python package
-|   ├── deduplicator.py                 # Implements hashlib based deduplication for data files
+|   ├── deduplicator.py                 # Implements hashlib based deduplication
 |   ├── logger.py                       # Centralized structured logging setup
 |   └── s3_util.py                      # Helper functions for S3 upload/download with boto3
 |
@@ -108,7 +112,7 @@ AutoOpsScaler/
 │   │   │   ├── llamaindex_loader.py       # Uses LlamaIndex to load and dedupe documents
 │   │   │   ├── s3_uploader.py             # Uploads raw files to S3 with boto3
 │   │   │   ├── web_scraper.py             # Scrapy+Playwright scraper with deduplication logic
-│   │   │   ├── Dockerfile                 # Builds extract/load container image with Ray and Prefect
+│   │   │   ├── Dockerfile                 # Builds extract/load container 
 │   │   │   ├── requirements.txt           # Python dependencies for extract/load container
 │   │   │   └── README.md                  # Workflow docs: extract and load stages
 │   │   ├── data_processing/               # Detects file types via unstructured.io; cleans & chunks text
@@ -118,29 +122,27 @@ AutoOpsScaler/
 │   │   │   ├── filters.py                 # Filters out noise; tracks retention ratios
 │   │   │   ├── format_normalizer.py       # Cleans text metadata; logs standardization stats
 │   │   │   ├── html_parser.py             # HTML parsing via trafilatura; logs malformed docs
-│   │   │   ├── Dockerfile                 # Builds preprocessing container image with Prefect
+│   │   │   ├── Dockerfile                 # Builds preprocessing container image
 │   │   │   ├── requirements.txt           # Python dependencies for preprocessing container
 │   │   │   └── README.md                  # Docs: parsing heuristics and chunking strategies
 │   │   └── embedding/                     # Batch embedding tasks; GPU intensive
 │   │       ├── __init__.py                # Declares embedding as a subpackage
-│   │       ├── batch_embed.py             # Prefect flow for batch embedding with metrics
 │   │       ├── model_loader.py            # Loads and caches SentenceTransformer models
 │   │       ├── insert_metadata.py         # Persists document metadata into Postgres
 │   │       ├── embed_to_qdrant.py         # Pushes embeddings to Qdrant; logs latency/stats
 │   │       ├── worker.py                  # Task-level embedding logic emitting performance spans
-│   │       ├── Dockerfile                 # Builds embedding container with Prefect and Ray libs
+│   │       ├── Dockerfile                 # Builds embedding container image
 │   │       ├── requirements.txt           # Python dependencies for embedding container
 │   │       └── README.md                  # Docs: embedding pipeline design and metrics
-|   |
-│   ├── main.py                            # Orchestrates the full indexing pipeline via Prefect flows/tasks: runs CPU and GPU jobs via Ray
+│   ├── main.py                            # Orchestrates the full indexing pipeline via Ray workflows 
 │   └── indexing_pipeline_config.yml       # Central config: stages, resource params, cluster hints for both ETL and embedding
 |
-|── inference_pipeline/                          # RayServices for high scaling inference
+|── inference_pipeline/                          # RayService with CPU and GPU worker nodes for high scaling inference
 |   ├── rag/                                     # Core RAG orchestration with integrated evaluation
 |   │   ├── Dockerfile                           # Container image build for RAG + eval flows
 |   │   ├── requirements.txt                     # Python dependencies for RAG + eval container
 |   │   ├── rag_config.yml                       # Central config file for RAG pipeline
-|   │   ├── main.py                              # Entrypoint: runs Prefect flows for RAG and eval
+|   │   ├── main.py                              # Entrypoint: runs ray workflows for RAG and eval
 |   │   └── modules/                             # RAG internal modules for retrieval, generation, and metrics
 |   │       ├── __init__.py                      # Declares rag.modules as a Python package
 |   │       ├── generator.py                     # Invokes LLMs; logs token usage and model details
@@ -202,9 +204,6 @@ AutoOpsScaler/
 |   ├── test_vector.py                    # Tests for Qdrant upsert and query operations
 |   └── env_check.sh                      # Script to verify CLI tools and environment health
 |
-|── .github/                              # GitHub Actions workflows
-|   └── workflows/
-|       └── ci.yml                        # CI pipeline: lint, tests, and Makefile integration
 |── scripts/                              # Essential scripts like login.sh, install.sh,..etc
 |── docs/                                 # Docs about infra, archtecture, configs, troubleshooting ,etc
 |── README.md                             # High‑level architecture, setup, and usage guide
