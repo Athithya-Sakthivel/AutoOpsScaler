@@ -75,11 +75,11 @@ AutoOpsScaler/
 |   └── 09_ingress/
 |       ├── __main__.py                 # Loads & validates ingress.yml, deploys Traefik IngressRoutes
 |       └── ingress.py                  # Helper functions for Traefik Ingress configuration
-
+|
 |── pulumi.yaml                         # Pulumi project metadata: name, runtime, and backend
 |── Pulumi.prod.yaml                    # Production stack config: region, cluster name, scaling limits
 |── Makefile                            # Unified commands for validate, build, and deploy workflows
-
+|
 |── utils/                              # Shared utility functions and helpers
 |   ├── README.md                       # Documentation for utility modules
 |   ├── __init__.py                     # Marks the utils directory as a Python package
@@ -87,7 +87,7 @@ AutoOpsScaler/
 |   ├── deduplicator.py                 # Implements SHA‑256 based deduplication for data files
 |   ├── logger.py                       # Centralized structured logging setup
 |   └── s3_util.py                      # Helper functions for S3 upload/download with boto3
-
+|
 |── storage/                            # Local mirror of S3 bucket structure for syncing
 |   ├── data/
 |   │   ├── raw/                        # Original, unprocessed data files
@@ -98,7 +98,7 @@ AutoOpsScaler/
 |   │       ├── qdrant_backups/        # Qdrant database snapshot files
 |   │       └── postgres_backups/      # Postgres database dump files
 |   └── observability/                 # Local snapshots of monitoring data
-
+|
 |── ELT/                                # Extract‑Load‑Transform pipeline (CPU‑based RayJob)
 |   ├── modules/                       # Python modules for extraction, loading, and parsing
 |   │   ├── __init__.py                 # Declares ELT.modules as a Python package
@@ -125,7 +125,7 @@ AutoOpsScaler/
 |   ├── DynamicRayJobGenerator.py       # Generates Ray Job CRD specs at runtime
 |   ├── ELT_config.yml                  # Central config file for ELT pipeline stages
 |   └── main.py                         # Orchestrates ELT stages via Prefect flows/tasks
-
+|
 |── indexing/                           # Embedding pipeline (GPU‑based RayJob)
 |   ├── modules/                       # Python modules for batch embedding and metadata
 |   │   ├── __init__.py                 # Declares embedding.modules as a Python package
@@ -139,67 +139,69 @@ AutoOpsScaler/
 |   │   └── requirements.txt            # Python dependencies for embedding container
 |   ├── app-embedding.argocd.yaml       # Argo CD manifest for embedding pipeline
 |   └── DynamicRayJobGenerator.py       # Generates Ray Job specs dynamically at runtime
-
-|── inference_pipeline/                # Production-ready pipelines for RAG, eval, and API
+|
+|
+|── inference_pipeline/                 # Production ready pipelines for RAG, eval, and API
 |   ├── rag/                            # Core RAG orchestration with integrated evaluation
 |   │   ├── Dockerfile                  # Container image build for RAG + eval flows
 |   │   ├── requirements.txt            # Python dependencies for RAG + eval container
 |   │   ├── DynamicRayServiceGenerator.py# Dynamically creates Ray Service specs for RAG cluster
 |   │   ├── app-rag.argocd.yaml         # ArgoCD manifest for RAG and evaluation services
 |   │   ├── main.py                     # Entrypoint: runs Prefect flows for RAG and eval
-|   │   ├── modules/                    # RAG internal modules for retrieval, generation, and metrics
-|   │   │   ├── __init__.py             # Declares rag.modules as a Python package
-|   │   │   ├── generator.py            # Invokes LLMs; logs token usage and model details
-|   │   │   ├── pipeline.py             # Retrieval‑augmented generation orchestration logic
-|   │   │   ├── retriever.py            # Vector DB search and chunk retrieval logic
-|   │   │   ├── eval_pipeline.py        # Quality evaluation pipeline using RAGAS or custom metrics
-|   │   │   └── ragas_wrapper.py        # Adapter for invoking RAGAS evaluation and tracing APIs
-|   ├── api/                           # User-facing API and web interface
-|   │   ├── frontend/                  # React frontend application for RAG interaction
-|   │   │   ├── DynamicRayServiceGenerator.py# Generates Ray Service specs for frontend
-|   │   │   ├── Dockerfile             # Builds frontend using Vite and React
-|   │   │   ├── requirements.txt       # Node/Python dependencies for frontend container (if any)
-|   │   │   ├── vite.config.ts         # Vite configuration for development and production
-|   │   │   ├── index.html             # HTML template for mounting React app
-|   │   │   ├── package.json           # Frontend dependencies and build scripts
-|   │   │   ├── src/                   # Frontend source files
-|   │   │   │   ├── main.tsx           # App entry point mounting the root component
-|   │   │   │   ├── App.tsx            # Root React component with routing logic
-|   │   │   │   ├── api.ts             # Axios client configured with Postgres JWT auth
-|   │   │   │   ├── components/        # Reusable UI component library
-|   │   │   │   │   ├── Header.tsx     # Top navigation bar component
-|   │   │   │   │   └── FileUploader.tsx# Drag‑and‑drop file uploader component
-|   │   │   │   ├── pages/             # Routed page components
-|   │   │   │   │   ├── Search.tsx     # Semantic search UI and logic
-|   │   │   │   │   ├── Generate.tsx   # LLM prompt submission and display
-|   │   │   │   │   └── Login.tsx      # User login page with Postgres JWT authentication
-|   │   │   │   └── styles/            # Global styling resources
-|   │   │   │       └── main.css       # Application‑wide CSS or Tailwind configuration
-|   │   ├── backend/                  # FastAPI backend serving frontend and orchestration APIs
-|   │   │   ├── Dockerfile            # Builds backend container with FastAPI and Prefect client
-|   │   │   ├── requirements.txt      # Python dependencies for backend container
-|   │   │   ├── DynamicRayServiceGenerator.py# Generates Ray Serve specs for backend
-|   │   │   ├── app-api.argocd.yaml    # ArgoCD manifest for backend deployment
-|   │   │   ├── __init__.py            # Declares backend as a Python package
-|   │   │   ├── main.py                # FastAPI entrypoint registering all routes
-|   │   │   ├── dependencies/          # Shared modules: config, auth, ORM schemas
-|   │   │   │   ├── __init__.py        # Declares dependencies as a Python module
-|   │   │   │   ├── config.py          # Loads env vars, DB URI, and application settings
-|   │   │   │   ├── auth_postgres.py   # JWT validation against Postgres session store
-|   │   │   │   └── tables/            # SQLAlchemy ORM models for database tables
-|   │   │   │       ├── __init__.py    # Declares tables as a Python subpackage
-|   │   │   │       ├── user.py        # 'User' model schema and helper methods
-|   │   │   │       ├── session.py     # 'Session' model for JWT sessions and expiry
-|   │   │   │       ├── feedback.py    # 'Feedback' model for user ratings and corrections
-|   │   │   │       └── query_log.py   # 'QueryLog' model for auditing and analytics
-|   │   │   └── routes/                # FastAPI route handlers grouped by feature
-|   │   │       ├── __init__.py        # Declares routes as a module
-|   │   │       ├── embedding.py       # Embeddings generation endpoint
-|   │   │       ├── generate.py        # LLM generation endpoint
-|   │   │       ├── health.py          # Health and readiness probes
-|   │   │       ├── job.py             # Endpoints for triggering background jobs
-|   │   │       └── search.py          # Semantic search query endpoint
-
+|   │   └── modules/                    # RAG internal modules for retrieval, generation, and metrics
+|   │       ├── __init__.py             # Declares rag.modules as a Python package
+|   │       ├── generator.py            # Invokes LLMs; logs token usage and model details
+|   │       ├── agent.py                # Simple ReAct agent for better retreival
+|   │       ├── retriever.py            # Vector DB search and chunk retrieval logic
+|   │       ├── eval_pipeline.py        # Quality evaluation pipeline using RAGAS/trulens or custom metrics
+|   │       └── ragas_wrapper.py        # Adapter for invoking RAGAS/trulens evaluation and tracing APIs
+|   |   
+|   └── api/                           # User-facing API and web interface
+|       ├── frontend/                  # React frontend application for RAG interaction
+|       │   ├── DynamicRayServiceGenerator.py# Generates Ray Service specs for frontend
+|       │   ├── Dockerfile             # Builds frontend using Vite and React
+|       │   ├── requirements.txt       # Node/Python dependencies for frontend container (if any)
+|       │   ├── vite.config.ts         # Vite configuration for development and production
+|       │   ├── index.html             # HTML template for mounting React app
+|       │   ├── package.json           # Frontend dependencies and build scripts
+|       │   └── src/                   # Frontend source files
+|       │       ├── main.tsx           # App entry point mounting the root component
+|       │       ├── App.tsx            # Root React component with routing logic
+|       │       ├── api.ts             # Axios client configured with Postgres JWT auth
+|       │       ├── components/        # Reusable UI component library
+|       │       │   ├── Header.tsx     # Top navigation bar component
+|       │       │   └── FileUploader.tsx# Drag‑and‑drop file uploader component
+|       │       ├── pages/             # Routed page components
+|       │       │   ├── Search.tsx     # Semantic search UI and logic
+|       │       │   ├── Generate.tsx   # LLM prompt submission and display
+|       │       │   └── Login.tsx      # User login page with Postgres JWT authentication
+|       │       └── styles/            # Global styling resources
+|       │           └── main.css       # Application‑wide CSS or Tailwind configuration
+|       └── backend/                  # FastAPI backend serving frontend and orchestration APIs
+|           ├── Dockerfile            # Builds backend container with FastAPI and Prefect client
+|           ├── requirements.txt      # Python dependencies for backend container
+|           ├── DynamicRayServiceGenerator.py# Generates Ray Serve specs for backend
+|           ├── app-api.argocd.yaml    # ArgoCD manifest for backend deployment
+|           ├── __init__.py            # Declares backend as a Python package
+|           ├── main.py                # FastAPI entrypoint registering all routes
+|           ├── dependencies/          # Shared modules: config, auth, ORM schemas
+|           │   ├── __init__.py        # Declares dependencies as a Python module
+|           │   ├── config.py          # Loads env vars, DB URI, and application settings
+|           │   ├── auth_postgres.py   # JWT validation against Postgres session store
+|           │   └── tables/            # SQLAlchemy ORM models for database tables
+|           │       ├── __init__.py    # Declares tables as a Python subpackage
+|           │       ├── user.py        # 'User' model schema and helper methods
+|           │       ├── session.py     # 'Session' model for JWT sessions and expiry
+|           │       ├── feedback.py    # 'Feedback' model for user ratings and corrections
+|           │       └── query_log.py   # 'QueryLog' model for auditing and analytics
+|           └── routes/                # FastAPI route handlers grouped by feature
+|               ├── __init__.py        # Declares routes as a module
+|               ├── embedding.py       # Embeddings generation endpoint
+|               ├── generate.py        # LLM generation endpoint
+|               ├── health.py          # Health and readiness probes
+|               ├── job.py             # Endpoints for triggering background jobs
+|               └── search.py          # Semantic search query endpoint
+|
 |── tests/                                # Test suite for all components
 |   ├── __init__.py                       # Marks tests as a Python module
 |   ├── conftest.py                       # Shared pytest fixtures and mock clients
