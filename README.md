@@ -1,37 +1,6 @@
 
 
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -56,10 +25,85 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
 
 
+✅ **Good catch — you’re right!**
+In your current setup, you have `ssh.sh` — not `connect.sh`.
 
+So the README should match what you actually have. Here’s the **corrected version**, using **`ssh.sh`** consistently:
 
+---
 
-https://aka.ms/vs/16/release/vc_redist.x64.exe
+## 🚀 **AutoOpsScaler — Quick Start**
 
-# AutoOpsScaler
-# AutoOpsScaler
+### ✅ **Prerequisites**
+
+**Install these in order (one time only):**
+
+| Windows                                                                                                              | macOS/Linux                                                        |
+| -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| [VS Code](https://code.visualstudio.com/) *(required)*                                                               | [VS Code](https://code.visualstudio.com/) *(required)*             |
+| [Visual C++ Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170) | *(not needed)*                                                     |
+| [Git](https://git-scm.com/downloads)                                                                                 | [Git](https://git-scm.com/downloads)                               |
+| [Vagrant 2.4.3](https://developer.hashicorp.com/vagrant/downloads)                                                   | [Vagrant 2.4.3](https://developer.hashicorp.com/vagrant/downloads) |
+| [VirtualBox](https://www.virtualbox.org/wiki/Downloads)                                                              | [VirtualBox](https://www.virtualbox.org/wiki/Downloads)            |
+
+> ✅ **Tip:** If the latest VirtualBox has issues with Vagrant 2.4.3, use [7.0.14](https://download.virtualbox.org/virtualbox/7.0.14/).
+
+---
+
+### 🔥 **Get Started**
+
+1️⃣ **Clone & launch the VM:**
+
+```bash
+git config --global core.autocrlf false
+git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler.git
+cd AutoOpsScaler
+vagrant up
+```
+
+2️⃣ **Set up SSH config:**
+
+```bash
+bash ssh.sh
+```
+
+---
+
+### 🖥️ **Connect with VS Code (recommended)**
+
+1. Open VS Code on your laptop.
+2. Install the **Remote - SSH** extension (if not done).
+3. Click the green icon in the bottom-left, or `Ctrl+Shift+P` → **Remote-SSH: Connect to Host**.
+4. Pick **`AutoOpsScaler`**.
+5. When prompted for platform, **select `Linux`** (your VM runs Linux).
+
+VS Code will:
+✅ Connect via SSH
+✅ Install the VS Code server
+✅ Open a remote workspace
+
+---
+
+### ✅ **You’re all set!**
+
+Next time, just do:
+
+```bash
+vagrant up
+bash ssh.sh
+```
+
+and connect with **VS Code Remote SSH**.
+
+---
+
+## ⚡ **Tips**
+
+* To work directly inside the VM:
+
+  ```bash
+  ssh AutoOpsScaler
+  cd /vagrant/ && code .
+  ```
+* Or just use open VSCode — it does this for you!
+
