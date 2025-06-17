@@ -82,13 +82,6 @@ AutoOpsScaler/
 |
 |── Makefile                            # Unified commands for validate, build, and deploy workflows
 |
-|── utils/                              # Shared utility functions and helpers
-|   ├── README.md                       # Documentation for utility modules
-|   ├── __init__.py                     # Marks the utils directory as a Python package
-|   ├── deduplicator.py                 # Implements hashlib based deduplication
-|   ├── logger.py                       # Centralized structured logging setup
-|   └── s3_util.py                      # Helper functions for S3 upload/download with boto3
-|
 ├── flux/
 │   ├── base/
 │   │   ├── ray_service.yaml      # inference pipeline: always-on
@@ -102,7 +95,13 @@ AutoOpsScaler/
 │       │   └── kustomization.yaml  # dev env-specific patch
 │       └── prod/
 │           └── kustomization.yaml  # prod env-specific patch
-│
+|
+|── utils/                              # Shared utility functions and helpers
+|   ├── __init__.py                     # Marks the utils directory as a Python package
+|   ├── deduplicator.py                 # Implements hashlib based deduplication
+|   ├── logger.py                       # Centralized structured logging setup
+|   └── s3_util.py                      # Helper functions for S3 upload/download with boto3
+|
 ├── indexing_pipeline/                     # Unified indexing pipeline: ELT (CPU) + Embedding (GPU)
 │   ├── modules/                           # Python modules for extraction, processing, embedding
 │   │   ├── __init__.py                    # Declares modules as a Python package
