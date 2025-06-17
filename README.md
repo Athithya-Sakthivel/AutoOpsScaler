@@ -138,7 +138,7 @@ AutoOpsScaler/
 |   │   ├── Dockerfile                  # Builds embedding container with Prefect and Ray libs
 |   │   └── requirements.txt            # Python dependencies for embedding container
 |   ├── app-embedding.argocd.yaml       # Argo CD manifest for embedding pipeline
-|   ├── indexing_config.yml             # Central config file indexing pipeline
+|   ├── indexing_config.yml             # Central config file for indexing pipeline
 |   └── DynamicRayJobGenerator.py       # Generates Ray Job specs dynamically at runtime
 |
 |
@@ -179,6 +179,7 @@ AutoOpsScaler/
 |       │       │   └── Login.tsx      # User login page with Postgres JWT authentication
 |       │       └── styles/            # Global styling resources
 |       │           └── main.css       # Application‑wide CSS or Tailwind configuration
+|       |
 |       └── backend/                  # FastAPI backend serving frontend and orchestration APIs
 |           ├── Dockerfile            # Builds backend container with FastAPI and Prefect client
 |           ├── requirements.txt      # Python dependencies for backend container
@@ -197,6 +198,7 @@ AutoOpsScaler/
 |           │       ├── session.py     # 'Session' model for JWT sessions and expiry
 |           │       ├── feedback.py    # 'Feedback' model for user ratings and corrections
 |           │       └── query_log.py   # 'QueryLog' model for auditing and analytics
+|           |
 |           └── routes/                # FastAPI route handlers grouped by feature
 |               ├── __init__.py        # Declares routes as a module
 |               ├── embedding.py       # Embeddings generation endpoint
