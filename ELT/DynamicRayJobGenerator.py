@@ -1,1 +1,0 @@
-# Path: ELT/DynamicRayJobGenerator.py

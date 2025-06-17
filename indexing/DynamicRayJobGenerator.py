@@ -1,1 +1,0 @@
-# Path: indexing/DynamicRayJobGenerator.py
