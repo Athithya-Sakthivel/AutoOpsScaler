@@ -25,13 +25,6 @@
 
 
 
-✅ **Good catch — you’re right!**
-In your current setup, you have `ssh.sh` — not `connect.sh`.
-
-So the README should match what you actually have. Here’s the **corrected version**, using **`ssh.sh`** consistently:
-
----
-
 ## 🚀 **AutoOpsScaler — Quick Start**
 
 ### ✅ **Prerequisites**
