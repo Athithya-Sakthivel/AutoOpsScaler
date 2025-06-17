@@ -82,7 +82,7 @@ AutoOpsScaler/
 │   ├── base/
 │   │   ├── ray_service.yaml      # inference pipeline: always-on
 │   │   ├── ray_job.yaml          # indexing pipeline: batch job
-│   │   ├── namespace.yaml        # common namespace
+│   │   ├── namespace.yaml        # common namespaces dev and prod
 │   │   ├── k8s-secrets.yaml      # cluster secrets 
 │   │   ├── configmap.yaml        # non-secret configs
 │   │   ├── kustomization.yaml    # entrypoint
@@ -132,7 +132,7 @@ AutoOpsScaler/
 │   │       ├── requirements.txt           # Python dependencies for embedding container
 │   │       └── README.md                  # Docs: embedding pipeline design and metrics
 │   ├── main.py                            # Orchestrates the full data pipeline via Ray workflows 
-│   └── data_pipeline_config.yml       # Central config: stages, resource params, cluster hints for both ETL and embedding
+│   └── data_pipeline_config.yml           # Central config: stages, resource params, cluster hints for both ELT and embedding
 |
 |── inference_pipeline/                          # RayService with CPU and GPU worker nodes for high scaling inference
 |   ├── rag/                                     # Core RAG orchestration with integrated evaluation
