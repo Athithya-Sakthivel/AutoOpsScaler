@@ -24,7 +24,7 @@
 * **Modular AI stack:** deploy LLMs, embedding models, self-managed Postgres (Zalando), and a vector DB (Qdrant) — fully within your cluster, with high flexibility to plug in external API keys or skip deploying certain stages
 * **Enables safe autoscaling:** sub-minute GPU scaling with Spot fallback
 * **Provides observability:** Ray Dashboard, Prometheus, Grafana, Kubernetes events, and metrics
-* **Abstracts complexity:** Makefile commands and dynamic Python modules handle infrastructure and workloads without repetitive YAML or custom HPA/KEDA/Cluster Autoscaler scripts
+* **Abstracts complexity:** Makefile commands and dynamic Python modules handle infrastructure provisioning and deployment
 
 ---
 
