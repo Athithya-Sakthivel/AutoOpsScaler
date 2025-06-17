@@ -28,9 +28,9 @@ storage/llms/**/*
 !storage/llms/**/
 !storage/llms/**/.gitkeep
 
-# -----------------------
+# ----------------------
 # Shell script conventions
-# -----------------------
+# ----------------------
 *.sh text eol=lf
 *.sh text eol=lf diff
 
