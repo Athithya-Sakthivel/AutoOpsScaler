@@ -44,6 +44,7 @@
 ---
 
 ##  **Restart your system and get started**
+> Enter this in git bash terminal, first time will take longer as ubuntu jammy vm box needs to be installed
 ```bash
 cd $HOME && git config --global core.autocrlf false && git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler.git && cd AutoOpsScaler && vagrant up && bash ssh.sh
 ```
