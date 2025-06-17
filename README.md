@@ -84,7 +84,7 @@ AutoOpsScaler/
 |   ├── README.md                       # Documentation for utility modules
 |   ├── __init__.py                     # Marks the utils directory as a Python package
 |   ├── config_loader.py                # Loads and merges layered configs from base_configs/
-|   ├── deduplicator.py                 # Implements SHA‑256 based deduplication for data files
+|   ├── deduplicator.py                 # Implements hashlib based deduplication for data files
 |   ├── logger.py                       # Centralized structured logging setup
 |   └── s3_util.py                      # Helper functions for S3 upload/download with boto3
 |
@@ -102,16 +102,16 @@ AutoOpsScaler/
 |── ELT/                                # Extract‑Load‑Transform pipeline (CPU‑based RayJob)
 |   ├── modules/                        # Python modules for extraction, loading, and parsing
 |   │   ├── __init__.py                 # Declares ELT.modules as a Python package
-|   │   ├── extract_load/               # Raw ingestion into S3 for downstream pipelines
+|   │   ├── extract_load/               # Extract and load raw data in s3:/<bucket>/data/raw/ to return object urls during RAG inference
 |   │   │   ├── __init__.py             # Declares extract_load as a subpackage
 |   │   │   ├── file_watcher.py         # Watches local/S3 folders; triggers uploads
 |   │   │   ├── llamaindex_loader.py    # Uses LlamaIndex to load and dedupe documents
 |   │   │   ├── s3_uploader.py          # Uploads raw files to S3 with boto3
-|   │   │   ├── web_scraper.py          # Scrapy+Playwright scraper with deduplication logic
+|   │   │   ├── web_scraper.py          # Scrapy+Playwright scraper with deduplication logic via hashlib
 |   │   │   ├── Dockerfile              # Builds ELT container image with Ray and Prefect
 |   │   │   ├── requirements.txt        # Python dependencies for ELT container
 |   │   │   └── README.md               # Workflow docs: extract and load stages
-|   │   ├── data_preprocessing/         # Parses and chunks raw data for vectorization
+|   │   ├── data_processing/            # Auto detects file types via unstructured.io and processes anything in s3:/<bucket>/data/raw/
 |   │   │   ├── __init__.py             # Declares data_preprocessing as a subpackage
 |   │   │   ├── chunker_llamaindex.py   # Splits text into chunks; records latency metrics
 |   │   │   ├── doc_parser.py           # Parses files with unstructured.io; logs tracing info
