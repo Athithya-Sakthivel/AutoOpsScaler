@@ -138,6 +138,7 @@ AutoOpsScaler/
 |   │   ├── Dockerfile                  # Builds embedding container with Prefect and Ray libs
 |   │   └── requirements.txt            # Python dependencies for embedding container
 |   ├── app-embedding.argocd.yaml       # Argo CD manifest for embedding pipeline
+|   ├── indexing_config.yml             # Central config file indexing pipeline
 |   └── DynamicRayJobGenerator.py       # Generates Ray Job specs dynamically at runtime
 |
 |
@@ -145,8 +146,9 @@ AutoOpsScaler/
 |   ├── rag/                            # Core RAG orchestration with integrated evaluation
 |   │   ├── Dockerfile                  # Container image build for RAG + eval flows
 |   │   ├── requirements.txt            # Python dependencies for RAG + eval container
-|   │   ├── DynamicRayServiceGenerator.py# Dynamically creates Ray Service specs for RAG cluster
+|   │   ├── DynamicRayServiceGenerator.py # Dynamically creates Ray Service specs for RAG cluster
 |   │   ├── app-rag.argocd.yaml         # ArgoCD manifest for RAG and evaluation services
+|   |   ├── rag_config.yml              # Central config file for RAG pipeline
 |   │   ├── main.py                     # Entrypoint: runs Prefect flows for RAG and eval
 |   │   └── modules/                    # RAG internal modules for retrieval, generation, and metrics
 |   │       ├── __init__.py             # Declares rag.modules as a Python package
@@ -180,8 +182,9 @@ AutoOpsScaler/
 |       └── backend/                  # FastAPI backend serving frontend and orchestration APIs
 |           ├── Dockerfile            # Builds backend container with FastAPI and Prefect client
 |           ├── requirements.txt      # Python dependencies for backend container
-|           ├── DynamicRayServiceGenerator.py# Generates Ray Serve specs for backend
+|           ├── DynamicRayServiceGenerator.py # Generates Ray Serve specs for backend
 |           ├── app-api.argocd.yaml    # ArgoCD manifest for backend deployment
+|           ├── backend_config.yml      # Central config file for backend pipeline
 |           ├── __init__.py            # Declares backend as a Python package
 |           ├── main.py                # FastAPI entrypoint registering all routes
 |           ├── dependencies/          # Shared modules: config, auth, ORM schemas
