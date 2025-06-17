@@ -32,12 +32,15 @@ if [[ -n "$KEY_PATH" && -f "$KEY_PATH" ]]; then
 fi
 
 # 5️⃣ Install (or reinstall) your VS Code Remote‑SSH extension + Python, Docker, etc.
-code --install-extension ms-vscode-remote.remote-ssh@latest
-code --install-extension charliermarsh.ruff@latest
-code --install-extension necatiarslan.aws-s3-vscode-extension@latest
-code --install-extension ms-python.python@latest
-code --install-extension ms-azuretools.vscode-docker@latest
-code --install-extension ms-kubernetes-tools.vscode-kubernetes-tools@latest
+code --install-extension ms-vscode-remote.remote-ssh
+# Install all recommended extensions locally for VS Code
+
+code --install-extension charliermarsh.ruff
+code --install-extension NecatiARSLAN.aws-s3-vscode-extension
+code --install-extension ms-python.python
+code --install-extension ms-azuretools.vscode-docker
+code --install-extension ms-kubernetes-tools.vscode-kubernetes-tools
+
 
 # 6️⃣ Finally, launch VS Code into the Remote‑SSH session
 code --folder-uri "vscode-remote://ssh-remote+$NAME/vagrant"
