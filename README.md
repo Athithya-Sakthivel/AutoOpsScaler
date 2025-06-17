@@ -16,20 +16,22 @@
 
 ---
 
-## **AutoOpsScaler** significantly reduces the manual complexity by providing a declarative, fully automated backend for KubeRay on EKS + Karpenter and a self-hosted AI stack to run production workloads from day one.
-
-- **Provisions infrastructure:** VPC, EKS, Karpenter, IAM, networking  
-- **Configures Ray clusters:** fractional GPU scheduling, Serve, Train, Data components  
-- **Self-hosts AI stack:** LLM models, embedding models, self managed postgres(zalando), and a vector database(qdrant) — all deployed in your cluster  
-- **Enables safe autoscaling:** sub-minute GPU scaling with Spot fallback  
-- **Provides observability:** Ray Dashboard, Prometheus, Kubernetes events  
-- **Reduces YAML overhead:** no custom HPA, KEDA, or Cluster Autoscaler scripts
+Here’s your refined version — explicitly stating that **AutoOpsScaler** uses modern tools and best practices, with polished phrasing and consistent style, while preserving your modularity and abstraction points:
 
 ---
 
-## Run a Fully Self-Hosted GenAI Backend
+## **AutoOpsScaler** significantly reduces manual complexity by providing a declarative, fully automated backend for KubeRay on EKS + Karpenter, along with a highly modular AI stack to run production workloads from day one — all built with modern tools and best practices.
 
-With **AutoOpsScaler**, you can deploy and operate your own LLMs, embeddings, vector search, and RAG pipelines on your AWS account — with production-grade cost efficiency and without needing deep Kubernetes or Ray expertise.
+* **Provisions infrastructure:** VPC, EKS, Karpenter, IAM, networking
+* **Configures Ray clusters:** fractional GPU scheduling, Serve, Train, and Data components
+* **Modular AI stack:** deploy LLMs, embedding models, self-managed Postgres (Zalando), and a vector DB (Qdrant) — fully within your cluster, with high flexibility to plug in external API keys or skip deploying certain stages
+* **Enables safe autoscaling:** sub-minute GPU scaling with Spot fallback
+* **Provides observability:** Ray Dashboard, Prometheus, Grafana, Kubernetes events, and metrics
+* **Abstracts complexity:** Makefile commands and dynamic Python modules handle infrastructure and workloads without repetitive YAML or custom HPA/KEDA/Cluster Autoscaler scripts
+
+---
+
+## Happy Scaling! 
 
 # **AutoOpsScaler Architecture:**
 
