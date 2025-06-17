@@ -1,0 +1,9 @@
+# Force shell scripts to use LF always, everywhere
+*.sh text eol=lf
+
+# (Optional) force general text files to LF too
+*.yml text eol=lf
+*.yaml text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.json text eol=lf
