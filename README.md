@@ -44,21 +44,18 @@
 ---
 
 ##  **Restart your system and get started**
-
-1. **Clone & launch the VM:**
-
 ```bash
 cd $HOME
 git config --global core.autocrlf false
 git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler.git
 cd AutoOpsScaler
-vagrant up
+vagrant up  # install ubuntu VM box if running for the first time
 bash ssh.sh
 ```
 
 ---
 
-### 🖥️ **Connect with VS Code (Alternative)**
+##  **Connect with VS Code (Alternative)**
 0. vagrant up
 1. Open VS Code on your laptop.
 2. Install the **Remote - SSH** extension (if not done).
