@@ -31,6 +31,8 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", inline: <<-SHELL
     set -euxo pipefail
     cd /vagrant
+    rm -rf ~/.config/VirtualBox       # Linux
+    rm -rf ~/Library/VirtualBox 
 
     sudo apt-get update -y
     sudo apt-get install -y --no-install-recommends \
