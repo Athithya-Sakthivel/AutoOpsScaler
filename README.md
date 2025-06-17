@@ -83,7 +83,6 @@ AutoOpsScaler/
 |── utils/                              # Shared utility functions and helpers
 |   ├── README.md                       # Documentation for utility modules
 |   ├── __init__.py                     # Marks the utils directory as a Python package
-|   ├── config_loader.py                # Loads and merges layered configs from base_configs/
 |   ├── deduplicator.py                 # Implements hashlib based deduplication for data files
 |   ├── logger.py                       # Centralized structured logging setup
 |   └── s3_util.py                      # Helper functions for S3 upload/download with boto3
