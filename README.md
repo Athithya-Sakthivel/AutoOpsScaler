@@ -45,7 +45,7 @@
 
 ##  **Restart your system and get started**
 
-1️⃣ **Clone & launch the VM:**
+1. **Clone & launch the VM:**
 
 ```bash
 cd $HOME
@@ -55,7 +55,7 @@ cd AutoOpsScaler
 vagrant up
 ```
 
-2️⃣ **Set up SSH config:**
+2. **Set up SSH config:**
 
 ```bash
 bash ssh.sh
