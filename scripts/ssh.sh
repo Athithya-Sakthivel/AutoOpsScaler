@@ -2,45 +2,47 @@
 set -euo pipefail
 
 NAME="AutoOpsScaler"
-SSH_CONFIG="$HOME/.ssh/config"
 SSH_DIR="$HOME/.ssh"
+SSH_CONFIG="$SSH_DIR/config"
 
-# 0️⃣ Make sure ~/.ssh exists and is locked down
+echo "🔑 Ensuring $SSH_DIR exists and is secure..."
 mkdir -p "$SSH_DIR"
 chmod 700 "$SSH_DIR"
 
-# 1️⃣ Start the VM (will reuse it if already running)
+echo "🚀 Starting VM: $NAME..."
 vagrant up
 
-# 2️⃣ Remove any old block for this host
-#    and write a clean ssh-config entry
-grep -v "Host $NAME" "$SSH_CONFIG" 2>/dev/null > "${SSH_CONFIG}.tmp" || true
-mv "${SSH_CONFIG}.tmp" "$SSH_CONFIG"
-vagrant ssh-config \
-  | sed -E "s/^Host default/Host $NAME/" \
-  >> "$SSH_CONFIG"
-
-# 3️⃣ Secure your SSH config
-chmod 600 "$SSH_CONFIG"
-
-# 4️⃣ Secure the Vagrant private key
-##
-#    Extract the IdentityFile path from the config block we just added:
-KEY_PATH=$(awk "/^Host $NAME/,/^Host /{ if (/IdentityFile/) print \$2 }" "$SSH_CONFIG" | head -n1)
-if [[ -n "$KEY_PATH" && -f "$KEY_PATH" ]]; then
-  chmod 600 "$KEY_PATH"
+echo "🧹 Cleaning up old SSH config block for $NAME..."
+# Remove old block safely: sed deletes from "Host NAME" to next "Host " or EOF
+if [ -f "$SSH_CONFIG" ]; then
+  sed -i.bak "/^Host $NAME\$/,/^Host /{/^Host $NAME\$/!{/^Host /!d}}" "$SSH_CONFIG"
 fi
 
-# 5️⃣ Install (or reinstall) your VS Code Remote‑SSH extension + Python, Docker, etc.
-code --install-extension ms-vscode-remote.remote-ssh
-# Install all recommended extensions locally for VS Code
+echo "🔗 Adding fresh SSH config for $NAME..."
+vagrant ssh-config | sed "s/^Host default/Host $NAME/" >> "$SSH_CONFIG"
 
+echo "🔒 Securing SSH config file..."
+chmod 600 "$SSH_CONFIG"
+
+echo "🔒 Securing Vagrant private key..."
+KEY_PATH=$(awk "/^Host $NAME\$/,/^Host /{ if (/IdentityFile/) print \$2 }" "$SSH_CONFIG" | head -n1)
+if [[ -n "$KEY_PATH" && -f "$KEY_PATH" ]]; then
+  chmod 600 "$KEY_PATH"
+  echo "✔️ Secured $KEY_PATH"
+else
+  echo "⚠️ Warning: Could not find private key path for $NAME"
+fi
+
+echo "🧩 Installing VS Code extensions..."
+code --install-extension ms-vscode-remote.remote-ssh
 code --install-extension charliermarsh.ruff
 code --install-extension NecatiARSLAN.aws-s3-vscode-extension
 code --install-extension ms-python.python
 code --install-extension ms-azuretools.vscode-docker
 code --install-extension ms-kubernetes-tools.vscode-kubernetes-tools
 
+echo "✅ Verifying SSH connection..."
+ssh -q "$NAME" exit && echo "✔️ SSH works!" || { echo "❌ SSH failed — check your config."; exit 1; }
 
-# 6️⃣ Finally, launch VS Code into the Remote‑SSH session
+echo "🚀 Opening VS Code with Remote SSH: $NAME"
 code --folder-uri "vscode-remote://ssh-remote+$NAME/vagrant"
