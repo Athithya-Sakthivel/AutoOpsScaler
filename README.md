@@ -100,7 +100,7 @@ AutoOpsScaler/
 |   ├── logger.py                       # Centralized structured logging setup
 |   └── s3_util.py                      # Helper functions for S3 upload/download with boto3
 |
-├── indexing_pipeline/                     # Unified indexing pipeline: ELT (CPU) + Embedding (GPU)
+├── data_pipeline/                         # Unified data pipeline: ELT (CPU) + Embedding (GPU)
 │   ├── modules/                           # Python modules for extraction, processing, embedding
 │   │   ├── __init__.py                    # Declares modules as a Python package
 │   │   ├── extract_load/                  # Extract and load raw data in s3:/<bucket>/data/raw/
@@ -131,8 +131,8 @@ AutoOpsScaler/
 │   │       ├── Dockerfile                 # Builds embedding container image
 │   │       ├── requirements.txt           # Python dependencies for embedding container
 │   │       └── README.md                  # Docs: embedding pipeline design and metrics
-│   ├── main.py                            # Orchestrates the full indexing pipeline via Ray workflows 
-│   └── indexing_pipeline_config.yml       # Central config: stages, resource params, cluster hints for both ETL and embedding
+│   ├── main.py                            # Orchestrates the full data pipeline via Ray workflows 
+│   └── data_pipeline_config.yml       # Central config: stages, resource params, cluster hints for both ETL and embedding
 |
 |── inference_pipeline/                          # RayService with CPU and GPU worker nodes for high scaling inference
 |   ├── rag/                                     # Core RAG orchestration with integrated evaluation
