@@ -39,15 +39,16 @@
 | [Vagrant 2.4.3](https://developer.hashicorp.com/vagrant/downloads)                                                   | [Vagrant 2.4.3](https://developer.hashicorp.com/vagrant/downloads) |
 | [VirtualBox](https://www.virtualbox.org/wiki/Downloads)                                                              | [VirtualBox](https://www.virtualbox.org/wiki/Downloads)            |
 
-> ✅ **Tip:** If the latest VirtualBox has issues with Vagrant 2.4.3, use [7.0.14](https://download.virtualbox.org/virtualbox/7.0.14/).
+> If the latest VirtualBox has issues with Vagrant 2.4.3, use [7.0.14](https://download.virtualbox.org/virtualbox/7.0.14/).
 
 ---
 
-### 🔥 **Get Started**
+###  **Restart your system and get started**
 
 1️⃣ **Clone & launch the VM:**
 
 ```bash
+cd $HOME
 git config --global core.autocrlf false
 git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler.git
 cd AutoOpsScaler
