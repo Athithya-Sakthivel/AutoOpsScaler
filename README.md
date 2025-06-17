@@ -31,7 +31,6 @@ Here’s your refined version — explicitly stating that **AutoOpsScaler** uses
 
 ---
 
-## Happy Scaling! 
 
 # **AutoOpsScaler Architecture:**
 
