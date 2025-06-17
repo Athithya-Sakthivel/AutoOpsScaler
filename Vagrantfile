@@ -37,6 +37,7 @@ Vagrant.configure("2") do |config|
       build-essential \
       curl \
       git \
-      make
+      make \
+      gh
   SHELL
 end
