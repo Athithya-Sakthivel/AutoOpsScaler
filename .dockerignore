@@ -1,0 +1,167 @@
+# -----------------------
+# Base exclusions
+# -----------------------
+*.pyc
+*.pyo
+__pycache__/
+*.log
+*.swp
+*.bak
+.DS_Store
+.env
+.env.*
+.vagrant/
+
+# -----------------------
+# storage/: keep dir structure, ignore all files
+# -----------------------
+storage/**/*
+!storage/
+!storage/**/
+!storage/**/.gitkeep
+
+# -----------------------
+# llms/: same behavior
+# -----------------------
+storage/llms/**/*
+!storage/llms/
+!storage/llms/**/
+!storage/llms/**/.gitkeep
+
+# -----------------------
+# Shell script conventions
+# -----------------------
+*.sh text eol=lf
+*.sh text eol=lf diff
+
+# -----------------------
+# Kubernetes
+# -----------------------
+/var/log/k3s.log
+/etc/rancher/k3s/k3s.yaml
+*.kube/config
+*.kube/
+kubeconfig
+k3s.yaml
+
+# -----------------------
+# Logs and system files
+# -----------------------
+*.log
+*.pid
+*.sock
+
+# -----------------------
+# Python venv and build
+# -----------------------
+.venv/
+venv/
+ENV/
+env/
+*.egg
+*.egg-info/
+.eggs/
+.cache/
+.mypy_cache/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# -----------------------
+# VS Code, dev containers, editors
+# -----------------------
+.vscode/
+.devcontainer/.python-version
+.idea/
+*.sublime-project
+*.sublime-workspace
+Thumbs.db
+desktop.ini
+
+# -----------------------
+# Temp & dev scratch
+# -----------------------
+temp/
+*.tmp
+
+# -----------------------
+# Jupyter/IPython
+# -----------------------
+.ipynb_checkpoints/
+*.ipynb
+*.out
+
+# -----------------------
+# Frontend artifacts
+# -----------------------
+inference_pipeline/api/frontend/node_modules/
+inference_pipeline/api/frontend/dist/
+inference_pipeline/api/frontend/.vite/
+
+# -----------------------
+# Build/test artifacts
+# -----------------------
+build/
+dist/
+*.egg-info/
+
+# -----------------------
+# Infra artifacts
+# -----------------------
+models/
+models/**
+.aws/
+*.pem
+*.key
+*.crt
+
+infra/terraform/.terraform/
+infra/terraform/.terraform.lock.hcl
+infra/terraform/terraform.tfstate
+infra/terraform/terraform.tfstate.*
+
+workflows/.argo/
+**/Dockerfile.dev
+**/docker-compose.override.yml
+
+scripts/*.bak
+scripts/*_debug.py
+
+infra/carvel/kapp-values/dev.yaml.bak
+infra/carvel/kapp-values/prod.yaml.bak
+
+**/ray_results/
+**/ray_temp/
+
+meta_store/.supabase/
+
+dev/k3s-cluster.yaml
+
+*.tsbuildinfo
+
+dev/s3_schema.py
+
+*.map
+
+**/checkpoints/
+**/cache/
+
+# -----------------------
+# Final fallback safety
+# -----------------------
+**/*.bak
+**/*.tmp
+**/*.log
+
+# -----------------------
+# Allowlist essential tracked files
+# -----------------------
+!README.md
+!Makefile
+!.gitignore
+!requirements.txt
+
+# Non-repo stuff
+.gitlab/
+.githooks/

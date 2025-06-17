@@ -1,0 +1,5 @@
+ray
+llamaindex
+boto3
+scrapy
+haystack-ai
