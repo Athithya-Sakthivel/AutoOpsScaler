@@ -43,7 +43,7 @@ AutoOpsScaler/
 |   ├── qdrant.yml                      # Qdrant StatefulSet, EBS PVC, and Service manifest
 |   ├── ingress.yml                     # Traefik IngressRoutes and Middleware definitions
 |   └── README.md                       # Guidelines for writing and validating config files
-
+|
 |── base_infra/                         # Pulumi modules for validating configs and provisioning infra
 |   ├── 01_iam/
 |   │   ├── __main__.py                 # Loads & validates iam.yml, provisions IAM roles/policies
