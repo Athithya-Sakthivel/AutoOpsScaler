@@ -45,12 +45,7 @@
 
 ##  **Restart your system and get started**
 ```bash
-cd $HOME
-git config --global core.autocrlf false
-git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler.git
-cd AutoOpsScaler
-vagrant up  # install ubuntu VM box if running for the first time
-bash ssh.sh
+cd $HOME && git config --global core.autocrlf false && git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler.git && cd AutoOpsScaler && vagrant up && bash ssh.sh
 ```
 
 ---
