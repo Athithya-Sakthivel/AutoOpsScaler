@@ -246,6 +246,8 @@ A full Linux setup is required (do **not** use Docker Desktop, WSL,devcontainers
 | [VirtualBox](https://www.virtualbox.org/wiki/Downloads)                                                              | [VirtualBox](https://www.virtualbox.org/wiki/Downloads)            |
 
 > **Note:** If the latest VirtualBox version has compatibility issues with Vagrant 2.4.3, use [VirtualBox 7.0.14](https://download.virtualbox.org/virtualbox/7.0.14/).
+> If using windows, enter windows features and **Turn off Hyper‑V** , **Windows Hypervisor Platform**, delete **Windows Subsystem for Linux (WSL2)** if possible 
+
 
 ---
 
