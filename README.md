@@ -16,10 +16,6 @@
 
 ---
 
-Here’s your refined version — explicitly stating that **AutoOpsScaler** uses modern tools and best practices, with polished phrasing and consistent style, while preserving your modularity and abstraction points:
-
----
-
 ## **AutoOpsScaler** significantly reduces manual complexity by providing a declarative, fully automated backend for KubeRay on EKS + Karpenter, along with a highly modular AI stack to run production workloads from day one — all built with modern tools and best practices.
 
 * **Provisions infrastructure:** VPC, EKS, Karpenter, IAM, networking
