@@ -1,9 +1,19 @@
-# Force shell scripts to use LF always, everywhere
+# --- Enforce LF for all shell scripts ---
 *.sh text eol=lf
 
-# (Optional) force general text files to LF too
+# --- Common config files ---
 *.yml text eol=lf
 *.yaml text eol=lf
 *.py text eol=lf
 *.md text eol=lf
 *.json text eol=lf
+*.ps1 text eol=lf
+*.bat text eol=lf
+*.txt text eol=lf
+*.env text eol=lf
+*.ini text eol=lf
+
+# (Optional) For everything else:
+# * text=auto
+
+# --- Force Git to normalize line endings on commit ---

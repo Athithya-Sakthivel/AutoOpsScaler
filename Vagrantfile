@@ -9,8 +9,8 @@ Vagrant.configure("2") do |config|
   # Mount the current host working directory to /vagrant
   config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
 
-  # Avoid SSH key regeneration
-  config.ssh.insert_key = false
+  #  Let Vagrant generate a fresh key each time (more secure & hassle-free)
+  config.ssh.insert_key = true
 
   # VM resources
   config.vm.provider "virtualbox" do |vb|
@@ -19,21 +19,19 @@ Vagrant.configure("2") do |config|
     vb.gui = false
   end
 
-  # LLMOps: forward essential ports
+  # Forward essential ports  
   [
     8265,  # Ray Dashboard
     8001,  # kubectl proxy
-
   ].each do |port|
     config.vm.network "forwarded_port", guest: port, host: port, auto_correct: true
   end
 
-  # Idempotent shell provisioning
+  # Provision base tools
   config.vm.provision "shell", inline: <<-SHELL
     set -euxo pipefail
     cd /vagrant
 
-    # Update and install base tools
     sudo apt-get update -y
     sudo apt-get install -y --no-install-recommends \
       build-essential \

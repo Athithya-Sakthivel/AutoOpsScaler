@@ -71,7 +71,7 @@ htmlcov/
 # -----------------------
 # VS Code, dev containers, editors
 # -----------------------
-.vscode/
+
 .devcontainer/.python-version
 .idea/
 *.sublime-project
@@ -88,8 +88,7 @@ temp/
 # -----------------------
 # Jupyter/IPython
 # -----------------------
-.ipynb_checkpoints/
-*.ipynb
+
 *.out
 
 # -----------------------
@@ -116,31 +115,9 @@ models/**
 *.key
 *.crt
 
-infra/terraform/.terraform/
-infra/terraform/.terraform.lock.hcl
-infra/terraform/terraform.tfstate
-infra/terraform/terraform.tfstate.*
-
-workflows/.argo/
-**/Dockerfile.dev
-**/docker-compose.override.yml
-
-scripts/*.bak
-scripts/*_debug.py
-
-infra/carvel/kapp-values/dev.yaml.bak
-infra/carvel/kapp-values/prod.yaml.bak
-
-**/ray_results/
-**/ray_temp/
-
-meta_store/.supabase/
-
-dev/k3s-cluster.yaml
-
 *.tsbuildinfo
 
-dev/s3_schema.py
+
 
 *.map
 
