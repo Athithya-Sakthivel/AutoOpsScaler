@@ -25,9 +25,9 @@
 
 
 
-## 🚀 **AutoOpsScaler — Quick Start**
+# **AutoOpsScaler — Quick Start**
 
-### ✅ **Prerequisites**
+###  **Prerequisites**
 
 **Install these in order (one time only):**
 
@@ -43,7 +43,7 @@
 
 ---
 
-###  **Restart your system and get started**
+##  **Restart your system and get started**
 
 1️⃣ **Clone & launch the VM:**
 
