@@ -19,12 +19,8 @@ pull:
 	git rebase origin/main
 
 install:
-	chmod +x scripts/install.sh && sudo bash scripts/install.sh && \
-	@test -d .venv || python3 -m venv .venv
-	. .venv/bin/activate && \
-	pip install --upgrade pip setuptools wheel && \
-	pip install --upgrade -r requirements.txt
-	echo "source .venv/bin/activate" >> ~/.bashrc
+	chmod +x scripts/install.sh && sudo bash scripts/install.sh 
+	
 
 
 push:
