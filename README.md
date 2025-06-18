@@ -37,7 +37,7 @@ AutoOpsScaler/
 |   └── workflows/
 |       └── ci.yml                        # CI pipeline: lint, tests, and Makefile integration
 |
-|── base_configs/                       # Declarative source‑of‑truth configs for core infrastructure
+|── base_configs/                       # Declarative source‑of‑truth configs for the core infrastructure
 |   ├── iam.yml                         # Defines IAM roles, policies, and trust relationships
 |   ├── vpc.yml                         # Specifies VPC CIDRs, subnets, NAT gateways, and Internet Gateway
 |   ├── eks.yml                         # Configures EKS cluster settings and base node groups

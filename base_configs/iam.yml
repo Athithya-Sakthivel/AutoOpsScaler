@@ -1,1 +1,92 @@
-# Path: base_configs/iam.yml
+# configs/iam.yml
+
+# This file defines IAM roles, policies, trust relationships, and OIDC settings for the AutoOpsScaler platform.
+# Override only the MARKED fields below if needed; all values are production-safe defaults for least-privilege and compatibility.
+
+# Project-wide settings
+project: autoopsscaler  # [REQUIRED] Slug for naming IAM roles, instance profiles, and tags; use lowercase, no spaces.
+                        # [ALTERNATIVE] Override only if deploying a forked version of AutoOpsScaler in a different AWS account.
+
+global_tags:
+  owner: platform-team  # [OPTIONAL] Used for tagging and cost allocation; set to your name, team, or email.
+  project: autoopsscaler  # [DO NOT OVERRIDE] Ensures tag consistency across all IAM resources.
+
+# IAM Roles for platform components
+roles:
+
+  pulumi_github_oidc:
+    name: PulumiGithubOIDCRole  # [OPTIONAL] Use a custom name if managing roles centrally across repos
+    description: "Pulumi deploy role assumed via GitHub Actions OIDC"
+    assume_role_policy: github_oidc  # [DO NOT OVERRIDE] Enables federated GitHub → AWS auth via OIDC
+    managed_policies:
+      - arn:aws:iam::aws:policy/AdministratorAccess  # [ALTERNATIVE] Use PowerUserAccess for dev-only CI/CD; restrict further in prod
+    max_session_duration: 3600  # [OPTIONAL] Use 43200 for long GitHub workflows (e.g. large EKS provisioning)
+
+  eks_cluster:
+    name: EKSClusterRole  # [OPTIONAL] Change only if running multiple EKS clusters in the same AWS account
+    description: "IAM Role for EKS Control Plane to manage cluster"
+    service_principal: eks.amazonaws.com  # [DO NOT OVERRIDE] Required for EKS control plane trust relationship
+
+  eks_nodegroup:
+    name: EKSNodeGroupRole  # [OPTIONAL] Rename if managing distinct nodegroups per team or workload
+    description: "IAM Role for EKS Worker Nodes"
+    service_principal: ec2.amazonaws.com  # [DO NOT OVERRIDE] Required to launch EC2-backed EKS nodes
+    managed_policies:
+      - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+      - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
+  karpenter:
+    name: KarpenterControllerRole  # [OPTIONAL] Rename only if deploying multiple isolated karpenters
+    description: "IAM Role for Karpenter pod to manage EC2 lifecycle"
+    service_account: kube-system/karpenter  # [REQUIRED] Format: <namespace>/<name> of K8s ServiceAccount that mounts this IAM role.
+                                            # [ALTERNATIVE] If deploying in a different namespace (e.g. `karpenter-system`), update this accordingly.
+    assume_role_policy: irsa  # [DO NOT OVERRIDE] Enables Kubernetes IRSA integration
+    inline_policies:
+      karpenter-inline:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - "ec2:Describe*"
+              - "ec2:CreateLaunchTemplate"
+              - "ec2:RunInstances"
+              - "ec2:TerminateInstances"
+              - "pricing:GetProducts"
+              - "iam:PassRole"
+            Resource: "*"
+
+  ray_worker:
+    name: RayWorkerRole  # [OPTIONAL] Use task-specific names (e.g. `ray-etl-role`, `ray-rag-role`) for finer-grained IAM scoping
+    description: "IRSA role for Ray workers accessing S3, Qdrant"
+    service_account: ray-system/ray-worker  # [REQUIRED] Must match the K8s ServiceAccount name used by Ray pods.
+                                            # [ALTERNATIVE] If using a custom namespace or workload type, update this field.
+    assume_role_policy: irsa
+    managed_policies:
+      - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess  # [ALTERNATIVE] Use `AmazonS3FullAccess` if workers write to S3, or custom policy for specific buckets
+    inline_policies:
+      ray-access:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - "qdrant:*"  # [ALTERNATIVE] Use only if interacting with Qdrant on AWS; otherwise remove or scope by action
+              - "logs:PutLogEvents"
+              - "logs:CreateLogStream"
+            Resource: "*"
+
+# EC2 Instance Profiles (used only for Ray on EC2 — not K8s)
+instance_profiles:
+  ray_ec2_profile:
+    name: RayEC2Profile  # [OPTIONAL] Required only if running Ray in EC2 (not EKS)
+    role: RayWorkerRole  # [REQUIRED] Must match one of the IAM roles defined above (usually the Ray worker role)
+                         # [ALTERNATIVE] Replace if launching non-Ray EC2s with different permissions (e.g. preprocessing EC2s)
+
+# External Identity Provider for GitHub Actions OIDC
+oidc_providers:
+  github:
+    url: https://token.actions.githubusercontent.com  # [DO NOT OVERRIDE] GitHub Actions OIDC token issuer
+    client_ids:
+      - sts.amazonaws.com  # [DO NOT OVERRIDE] AWS requirement for federated OIDC
+    thumbprints:
+      - "6938fd4d98bab03faadb97b34396831e3780aea1"  # [OPTIONAL] Can rotate if GitHub root CA cert changes; verify via AWS docs
