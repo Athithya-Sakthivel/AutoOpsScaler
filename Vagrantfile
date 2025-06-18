@@ -13,7 +13,7 @@ Vagrant.configure("2") do |config|
   config.ssh.insert_key = false
 
   # Use a static IP for predictable SSH and docker ports
-  config.vm.network "private_network", ip: "192.168.56.12"
+  config.vm.network "private_network", ip: "192.168.56.18"
 
   config.vm.provider "virtualbox" do |vb|
     vb.memory = 11000
