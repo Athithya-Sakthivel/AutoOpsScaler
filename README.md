@@ -1,4 +1,4 @@
-# **AutoOpsScaler — A LowOps environment to implement the #1 GenAI scaling statergy**
+# **AutoOpsScaler — A LowOps environment to implement the top GenAI scaling statergy**
 
 ## KubeRay on EKS + Karpenter is the leading production strategy for highly scalable, cost-effective GenAI clusters.
 | **Aspect**                           | **KubeRay on EKS + Karpenter**                                        | **Alternatives (summary)**                                                                         |
