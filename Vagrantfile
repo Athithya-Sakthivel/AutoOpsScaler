@@ -1,18 +1,18 @@
 Vagrant.configure("2") do |config|
-  # Extend boot timeout for large images or slow hardware
+  # Long timeout for large images or slower hardware
   config.vm.boot_timeout = 3600
 
-  # Use official Ubuntu Jammy 22.04 box, pinned version for consistency
+  # Use stable Ubuntu Jammy 22.04 box, pinned version for reproducibility
   config.vm.box = "ubuntu/jammy64"
   config.vm.box_version = "20241002.0.0"
 
-  # Use rsync for file sync (faster for large file sets than VirtualBox shared folders)
+  # Use rsync for reliable file sync
   config.vm.synced_folder ".", "/vagrant", type: "rsync"
 
-  # Use stable SSH key for consistent remote SSH (keeps VS Code Remote SSH stable)
+  # Keep same SSH key for stable Remote SSH from VSCode
   config.ssh.insert_key = false
 
-  # Use a static private network IP to avoid DHCP conflicts
+  # Use a static IP for predictable SSH and docker ports
   config.vm.network "private_network", ip: "192.168.56.12"
 
   config.vm.provider "virtualbox" do |vb|
@@ -20,22 +20,21 @@ Vagrant.configure("2") do |config|
     vb.cpus = 6
     vb.gui = false
 
-    # Use host DNS resolver for stable external DNS
+    # Make NAT DNS use host resolver for stable DNS
     vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
     vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
   end
 
   config.vm.provision "shell", inline: <<-SHELL
-    set -eux
 
-    # Fix DNS configuration permanently
+    #  Fix DNS permanently
     sudo sed -i 's/^#DNS=/DNS=8.8.8.8 1.1.1.1/' /etc/systemd/resolved.conf || true
     sudo sed -i 's/^#FallbackDNS=/FallbackDNS=8.8.4.4/' /etc/systemd/resolved.conf || true
     sudo systemctl restart systemd-resolved
     sudo rm -f /etc/resolv.conf
     sudo ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
 
-    # Install base developer tools
+    #  Install base build tools
     sudo apt-get update -y
     sudo apt-get install -y --no-install-recommends \
       build-essential \
@@ -47,10 +46,16 @@ Vagrant.configure("2") do |config|
       gnupg \
       lsb-release
 
-    # Setup Docker APT repository securely, avoiding /dev/tty issue with --batch
+    #  Setup Docker repo keyring idempotently
     sudo mkdir -p /etc/apt/keyrings
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor --batch -o /etc/apt/keyrings/docker.gpg
 
+    if [ ! -f /etc/apt/keyrings/docker.gpg ]; then
+      # Download key and dearmor only once
+      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor --batch -o /etc/apt/keyrings/docker.gpg
+      sudo chmod a+r /etc/apt/keyrings/docker.gpg
+    fi
+
+    #  Add Docker repo, replace if exists (idempotent)
     echo \
       "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
       https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | \
@@ -58,20 +63,25 @@ Vagrant.configure("2") do |config|
 
     sudo apt-get update -y
 
-    # Install tested pinned Docker version
-    sudo apt-get install -y \
-      docker-ce=5:27.5.1-1~ubuntu.22.04~jammy \
-      docker-ce-cli=5:27.5.1-1~ubuntu.22.04~jammy \
-      containerd.io
+    #  Install specific tested Docker version
+    DOCKER_VERSION="5:27.5.1-1~ubuntu.22.04~jammy"
 
-    # Prevent Docker from being auto-updated by APT
+    # Install only if not already installed with exact version
+    if ! dpkg -l | grep -q "docker-ce.*${DOCKER_VERSION}"; then
+      sudo apt-get install -y \
+        docker-ce=${DOCKER_VERSION} \
+        docker-ce-cli=${DOCKER_VERSION} \
+        containerd.io
+    fi
+
+    #  Hold packages to prevent automatic upgrades
     sudo apt-mark hold docker-ce docker-ce-cli containerd.io
 
-    # Add vagrant user to docker group only if not already present
+    #  Add vagrant to docker group if not already in it
     if ! id vagrant | grep -q docker; then
       sudo usermod -aG docker vagrant
     fi
 
-    echo "Docker installed, version pinned, user permissions updated."
+    echo " Docker installed, version pinned, DNS fixed, user permissions configured."
   SHELL
 end
