@@ -1,12 +1,5 @@
 .PHONY: install login force-pull pull push lc lc-status delete-lc rebase-continue tree clean
 
-install:
-	@chmod +x scripts/bootstrap.sh && ./scripts/bootstrap.sh
-	@test -d .venv || python3 -m venv .venv
-	@. .venv/bin/activate && \
-		pip install --upgrade pip && \
-		pip install --upgrade -r requirements.txt
-
 login:
 	bash scripts/login.sh
 
@@ -24,6 +17,14 @@ pull:
 	fi
 	git fetch origin
 	git rebase origin/main
+
+install:
+	chmod +x scripts/install.sh && sudo bash scripts/install.sh && \
+	@test -d .venv || python3 -m venv .venv
+	. .venv/bin/activate && \
+	pip install --upgrade pip setuptools wheel && \
+	pip install --upgrade -r requirements.txt
+	echo "source .venv/bin/activate" >> ~/.bashrc
 
 
 push:
@@ -51,3 +52,7 @@ tree:
 clean:
 	find . -type d -name '__pycache__' -exec rm -rf {} + && find . -type f -name '*.py[co]' -delete
 
+iam:
+	@pip install -r base_infra/requirements.txt
+	cd base_infra/01_iam/ && python3 __main__.py
+	pulumi up

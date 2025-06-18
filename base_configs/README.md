@@ -78,4 +78,3 @@
 * `iam.User`, `iam.Group`, `UserPolicyAttachment`: only for long-term manual access (against GitOps principle)
 
 ---
-

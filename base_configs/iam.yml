@@ -40,7 +40,7 @@ roles:
     name: KarpenterControllerRole  # [OPTIONAL] Rename only if deploying multiple isolated karpenters
     description: "IAM Role for Karpenter pod to manage EC2 lifecycle"
     service_account: kube-system/karpenter  # [REQUIRED] Format: <namespace>/<name> of K8s ServiceAccount that mounts this IAM role.
-                                            # [ALTERNATIVE] If deploying in a different namespace (e.g. `karpenter-system`), update this accordingly.
+                                            # [ALTERNATIVE] If deploying in a different namespace (e.g. karpenter-system), update this accordingly.
     assume_role_policy: irsa  # [DO NOT OVERRIDE] Enables Kubernetes IRSA integration
     inline_policies:
       karpenter-inline:
@@ -57,13 +57,13 @@ roles:
             Resource: "*"
 
   ray_worker:
-    name: RayWorkerRole  # [OPTIONAL] Use task-specific names (e.g. `ray-etl-role`, `ray-rag-role`) for finer-grained IAM scoping
+    name: RayWorkerRole  # [OPTIONAL] Use task-specific names (e.g. ray-etl-role, ray-rag-role) for finer-grained IAM scoping
     description: "IRSA role for Ray workers accessing S3, Qdrant"
     service_account: ray-system/ray-worker  # [REQUIRED] Must match the K8s ServiceAccount name used by Ray pods.
                                             # [ALTERNATIVE] If using a custom namespace or workload type, update this field.
     assume_role_policy: irsa
     managed_policies:
-      - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess  # [ALTERNATIVE] Use `AmazonS3FullAccess` if workers write to S3, or custom policy for specific buckets
+      - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess  # [ALTERNATIVE] Use AmazonS3FullAccess if workers write to S3, or custom policy for specific buckets
     inline_policies:
       ray-access:
         Version: "2012-10-17"
