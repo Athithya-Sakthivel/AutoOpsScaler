@@ -1,4 +1,7 @@
 Vagrant.configure("2") do |config|
+  # Increase boot timeout to 1 hour (3600 seconds)
+  config.vm.boot_timeout = 3600
+
   config.vm.box = "ubuntu/jammy64"
   config.vm.box_version = "20241002.0.0"
 
