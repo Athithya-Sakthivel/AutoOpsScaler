@@ -241,7 +241,7 @@ cd $HOME && git config --global core.autocrlf false && git clone https://github.
 
  ### **After a system reboot**, the VM will be shut down. Always start it manually before connecting from VS Code:
 
-  * Open VirtualBox → Right-click the VM → **Start → Headless Start and wait atleast 1 min before opening vscode**
+  * Open VirtualBox → Right-click the VM → **Start → Headless Start and wait atleast 30-60 seconds before opening vscode**
 
   ![Start the VM](.vscode/Start_the_VM.png)
 
