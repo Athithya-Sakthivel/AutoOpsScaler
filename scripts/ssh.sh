@@ -41,5 +41,6 @@ code --install-extension ms-kubernetes-tools.vscode-kubernetes-tools
 echo "Verifying SSH..."
 ssh -q "$NAME" exit && echo "✔️ SSH works!" || { echo "❌ SSH failed."; exit 1; }
 
+
 echo "Opening VS Code with Remote SSH: $NAME"
-code --folder-uri "vscode-remote://ssh-remote+$NAME/vagrant"
+vagrant reload --provision && code --folder-uri "vscode-remote://ssh-remote+$NAME/vagrant"
