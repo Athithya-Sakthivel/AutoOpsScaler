@@ -91,6 +91,12 @@ AutoOpsScaler/
 │       └── prod/
 │           └── kustomization.yml       # Kustomize overlays for prod environment
 |
+|── utils/                              # Shared utility functions and helpers
+|   ├── __init__.py                     # Marks the utils directory as a Python package
+|   ├── deduplicator.py                 # Implements hashlib based deduplication
+|   ├── logger.py                       # Centralized structured logging setup
+|   └── s3_util.py                      # Helper functions for S3 upload/download with boto3
+|
 ├── data_pipeline
 │   ├── data_pipeline_config.yml        # central ELT & embedding pipeline settings
 │   ├── main.py                         # Ray workflow orchestrator for data pipeline
