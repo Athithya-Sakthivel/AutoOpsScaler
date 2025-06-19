@@ -2,15 +2,21 @@
 """
 base_infra/01_iam/iam.py
 
-Pulumi IAM provisioning for AutoOpsScaler platform.
+Pulumi IAM provisioning for AutoOpsScaler.
 
-- Loads and validates base_configs/iam.yml via pathlib
-- Defines IAM roles, instance profiles, and OIDC providers with Pulumi AWS provider
-- Ensures strict validation, idempotency, and robust error handling
-- Uses pathlib exclusively for path operations, no sys.exit()
+- Loads & validates base_configs/iam.yml via pathlib
+- Provisions OIDC providers, IAM Roles, and Instance Profiles per config
+- Supports assume_role_policy: github_oidc, irsa, or classic service principal
+- Applies global tags for consistency
+- Inlines Pydantic models—no external module imports
+- Idempotent, error-checked, and uses Pulumi AWS SDK
 
+Usage:
+  cd base_infra/01_iam
+  pulumi up
 """
 
+import json
 import logging
 from pathlib import Path
 from typing import Optional, List, Dict, Any, Literal
@@ -20,18 +26,19 @@ import pulumi_aws as aws
 import yaml
 from pydantic import BaseModel, Field, validator, root_validator
 
-# Configure logging (Pulumi handles logging, but useful for dev/debug)
+# Configure logging
 logger = logging.getLogger("iam_provisioner")
-logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
+logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
-# === Pydantic Models (inline, simplified) ===
+
+# === Pydantic Models ===
 
 class GlobalTags(BaseModel):
     owner: Optional[str]
     project: str
 
     @validator("project")
-    def project_must_be_autoopsscaler(cls, v):
+    def must_be_autoopsscaler(cls, v):
         if v != "autoopsscaler":
             raise ValueError("project tag must be 'autoopsscaler'")
         return v
@@ -48,7 +55,7 @@ class InlinePolicy(BaseModel):
     Statement: List[InlinePolicyStatement]
 
     @validator("Version")
-    def version_must_be_2012_10_17(cls, v):
+    def version_ok(cls, v):
         if v != "2012-10-17":
             raise ValueError("Inline policy version must be '2012-10-17'")
         return v
@@ -65,33 +72,21 @@ class Role(BaseModel):
     inline_policies: Optional[Dict[str, InlinePolicy]] = {}
 
     @root_validator
-    def check_assume_role_policy_consistency(cls, values):
-        arp = values.get("assume_role_policy")
-        sp = values.get("service_principal")
-        sa = values.get("service_account")
-
-        if arp == "github_oidc":
-            if sp is not None or sa is not None:
-                raise ValueError("github_oidc roles cannot have service_principal or service_account")
-
+    def check_consistency(cls, values):
+        arp, sp, sa = values.get("assume_role_policy"), values.get("service_principal"), values.get("service_account")
+        if arp == "github_oidc" and (sp or sa):
+            raise ValueError("github_oidc roles must not set service_principal or service_account")
         if arp == "irsa":
-            if not sa:
-                raise ValueError("irsa roles require service_account")
-            if sp is not None:
-                raise ValueError("irsa roles cannot have service_principal")
-
-        if arp is None:
-            if sp is None:
-                raise ValueError("roles without assume_role_policy require service_principal")
-            if sa is not None:
-                raise ValueError("roles without assume_role_policy cannot have service_account")
-
+            if not sa or sp:
+                raise ValueError("irsa roles must set service_account only")
+        if arp is None and not sp:
+            raise ValueError("roles without assume_role_policy must define service_principal")
         return values
 
     @validator("max_session_duration")
-    def max_session_duration_range(cls, v):
+    def duration_ok(cls, v):
         if v is not None and not (3600 <= v <= 43200):
-            raise ValueError("max_session_duration must be between 3600 and 43200")
+            raise ValueError("max_session_duration must be 3600–43200")
         return v
 
 
@@ -106,15 +101,15 @@ class OIDCProvider(BaseModel):
     thumbprints: List[str]
 
     @validator("url")
-    def url_must_be_https(cls, v):
+    def url_https(cls, v):
         if not v.startswith("https://"):
-            raise ValueError("OIDC provider url must start with https://")
+            raise ValueError("OIDC provider URL must start with https://")
         return v
 
     @validator("client_ids", "thumbprints")
-    def lists_not_empty(cls, v):
-        if not v or len(v) == 0:
-            raise ValueError("List must not be empty")
+    def non_empty(cls, v):
+        if not v:
+            raise ValueError("Lists must not be empty")
         return v
 
 
@@ -126,207 +121,156 @@ class IAMConfig(BaseModel):
     oidc_providers: Dict[str, OIDCProvider]
 
     @validator("project")
-    def project_slug_lowercase_no_spaces(cls, v):
+    def slug_ok(cls, v):
         if v != v.lower() or " " in v:
-            raise ValueError("Project slug must be lowercase and contain no spaces")
+            raise ValueError("project slug must be lowercase, no spaces")
         return v
 
     @root_validator
-    def check_roles_and_instance_profiles(cls, values):
-        roles = values.get("roles", {})
-        instance_profiles = values.get("instance_profiles", {})
-
-        # Validate unique role names (either role.name or dict key)
-        role_names = set()
-        for key, role in roles.items():
-            rname = role.name or key
-            if rname in role_names:
-                raise ValueError(f"Duplicate role name found: {rname}")
-            role_names.add(rname)
-
-        # Instance profiles must reference valid role names
-        for ip_key, ip in instance_profiles.items():
+    def check_refs(cls, values):
+        roles, ips = values.get("roles", {}), values.get("instance_profiles", {})
+        role_names = {r.name or k for k, r in roles.items()}
+        for ip_key, ip in ips.items():
             if ip.role not in roles and ip.role not in role_names:
-                raise ValueError(f"Instance profile '{ip_key}' references unknown role '{ip.role}'")
-
-        # global_tags.project must match top-level project
-        global_tags = values.get("global_tags")
-        project = values.get("project")
-        if global_tags and global_tags.project != project:
+                raise ValueError(f"InstanceProfile '{ip_key}' references unknown role '{ip.role}'")
+        if values["global_tags"].project != values["project"]:
             raise ValueError("global_tags.project must match top-level project")
-
         return values
 
 
 # === Helpers ===
 
-def load_yaml_config(path: Path) -> dict:
-    if not path.is_file():
-        raise FileNotFoundError(f"Config file not found: {path}")
-    with open(path, "r", encoding="utf-8") as f:
-        data = yaml.safe_load(f)
-    if not isinstance(data, dict):
-        raise ValueError("Top-level YAML structure must be a dictionary")
-    return data
+def load_config() -> IAMConfig:
+    cfg_path = Path(__file__).parent.parent.parent / "base_configs" / "iam.yml"
+    if not cfg_path.is_file():
+        raise FileNotFoundError(f"Config not found: {cfg_path}")
+    raw = yaml.safe_load(cfg_path.open(encoding="utf-8"))
+    if not isinstance(raw, dict):
+        raise ValueError("Top-level YAML must be a dict")
+    cfg = IAMConfig.parse_obj(raw)
+    logger.info("IAM configuration validated")
+    return cfg
 
 
-def get_assume_role_policy_document(role: Role, project_slug: str) -> str:
-    """
-    Returns JSON policy document string for assume role policy based on the role config.
-    """
+def build_service_assume(role: Role) -> str:
+    return json.dumps({
+        "Version": "2012-10-17",
+        "Statement": [{
+            "Effect": "Allow",
+            "Principal": {"Service": role.service_principal},
+            "Action": "sts:AssumeRole"
+        }]
+    })
 
-    import json
 
-    # Use known templates for assume_role_policy values
+def build_github_oidc_assume(oidc_arn: str) -> str:
+    # Broad trust for GitHub OIDC provider; customize Condition as needed
+    return json.dumps({
+        "Version": "2012-10-17",
+        "Statement": [{
+            "Effect": "Allow",
+            "Principal": {"Federated": oidc_arn},
+            "Action": "sts:AssumeRoleWithWebIdentity"
+        }]
+    })
 
-    if role.assume_role_policy == "github_oidc":
-        # GitHub OIDC trust policy (example, update thumbprint and audience accordingly)
-        # Pulumi requires JSON string or dict
-        doc = {
-            "Version": "2012-10-17",
-            "Statement": [{
-                "Effect": "Allow",
-                "Principal": {"Federated": f"arn:aws:iam::{aws.get_caller_identity().account_id}:oidc-provider/token.actions.githubusercontent.com"},
-                "Action": "sts:AssumeRoleWithWebIdentity",
-                "Condition": {
-                    "StringLike": {
-                        "token.actions.githubusercontent.com:sub": "repo:autoopsscaler/*:ref:refs/heads/main"
-                    }
+
+def build_irsa_assume(oidc_arn: str, sa: str) -> str:
+    namespace, name = sa.split("/", 1)
+    prefix = oidc_arn.split("oidc-provider/")[1]
+    return json.dumps({
+        "Version": "2012-10-17",
+        "Statement": [{
+            "Effect": "Allow",
+            "Principal": {"Federated": oidc_arn},
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+                "StringEquals": {
+                    f"{prefix}:sub": f"system:serviceaccount:{namespace}:{name}"
                 }
-            }]
-        }
-        return json.dumps(doc)
+            }
+        }]
+    })
 
-    elif role.assume_role_policy == "irsa":
-        # IRSA trust policy for Kubernetes ServiceAccount
 
-        namespace, sa_name = role.service_account.split("/", 1)
-
-        oidc_provider_arn = f"arn:aws:iam::{aws.get_caller_identity().account_id}:oidc-provider/oidc.eks.{aws.config.region}.amazonaws.com/id/EXAMPLED539D4633E53DE1B716D3041E"  # Placeholder - user must update or dynamically detect
-
-        # For production, you must replace oidc_provider_arn above with actual cluster OIDC provider ARN, or read from config
-
-        doc = {
-            "Version": "2012-10-17",
-            "Statement": [{
-                "Effect": "Allow",
-                "Principal": {"Federated": oidc_provider_arn},
-                "Action": "sts:AssumeRoleWithWebIdentity",
-                "Condition": {
-                    "StringEquals": {
-                        f"oidc.eks.{aws.config.region}.amazonaws.com/id/EXAMPLED539D4633E53DE1B716D3041:sub": f"system:serviceaccount:{namespace}:{sa_name}"
-                    }
-                }
-            }]
-        }
-        return json.dumps(doc)
-
-    else:
-        # Classic service principal trust policy
-        doc = {
-            "Version": "2012-10-17",
-            "Statement": [{
-                "Effect": "Allow",
-                "Principal": {"Service": role.service_principal},
-                "Action": "sts:AssumeRole"
-            }]
-        }
-        return json.dumps(doc)
-
+# === Provisioning ===
 
 def main():
-    try:
-        base_dir = Path(__file__).parent.parent.parent.resolve()
-        config_path = base_dir / "base_configs" / "iam.yml"
+    cfg = load_config()
+    tags = cfg.global_tags.dict(exclude_none=True)
 
-        logger.info(f"Loading IAM config from {config_path}")
-        raw_cfg = load_yaml_config(config_path)
+    # 1) Create OIDC providers
+    oidc_objs: Dict[str, aws.iam.OpenIdConnectProvider] = {}
+    for key, o in cfg.oidc_providers.items():
+        oidc_objs[key] = aws.iam.OpenIdConnectProvider(
+            resource_name=key,
+            url=o.url,
+            client_id_lists=o.client_ids,
+            thumbprint_lists=o.thumbprints,
+            tags=tags,
+        )
 
-        iam_config = IAMConfig.parse_obj(raw_cfg)
-        logger.info("IAM config validation successful.")
+    # 2) Create IAM Roles
+    role_objs: Dict[str, aws.iam.Role] = {}
+    caller = aws.get_caller_identity()
+    for key, role_cfg in cfg.roles.items():
+        rname = role_cfg.name or key
 
-        project_slug = iam_config.project
-        global_tags = iam_config.global_tags.dict(exclude_none=True)
+        # Determine assume role policy
+        if role_cfg.assume_role_policy == "github_oidc":
+            # We expect a GitHub OIDC provider entry in cfg.oidc_providers
+            if "github" not in oidc_objs:
+                raise RuntimeError("Config missing 'github' OIDC provider for GitHub OIDC roles")
+            assume = build_github_oidc_assume(oidc_objs["github"].arn)
+        elif role_cfg.assume_role_policy == "irsa":
+            # We pick the first non-github OIDC provider for IRSA, if any
+            irsa_providers = [v for k, v in oidc_objs.items() if k != "github"]
+            if not irsa_providers:
+                raise RuntimeError("No OIDC provider found for IRSA roles")
+            assume = build_irsa_assume(irsa_providers[0].arn, role_cfg.service_account)
+        else:
+            assume = build_service_assume(role_cfg)
 
-        # --- Create IAM Roles ---
+        role = aws.iam.Role(
+            resource_name=rname,
+            name=rname,
+            assume_role_policy=assume,
+            description=role_cfg.description,
+            max_session_duration=role_cfg.max_session_duration or 3600,
+            tags=tags,
+        )
+        role_objs[key] = role
 
-        role_objects = {}
-        for role_key, role in iam_config.roles.items():
-            # Determine role name, fallback to key
-            role_name = role.name or role_key
-
-            assume_role_policy_json = get_assume_role_policy_document(role, project_slug)
-
-            # Create AWS IAM Role resource
-            role_res = aws.iam.Role(
-                resource_name=role_name,
-                name=role_name,
-                assume_role_policy=assume_role_policy_json,
-                description=role.description,
-                max_session_duration=role.max_session_duration or 3600,
-                tags=global_tags,
-                opts=pulumi.ResourceOptions(
-                    retain_on_delete=False
-                )
+        # Attach managed policies
+        for idx, arn in enumerate(role_cfg.managed_policies or []):
+            aws.iam.RolePolicyAttachment(
+                resource_name=f"{rname}-mp-{idx}",
+                role=role.name,
+                policy_arn=arn,
+                opts=pulumi.ResourceOptions(parent=role),
             )
 
-            # Attach managed policies if any
-            for managed_policy_arn in role.managed_policies or []:
-                aws.iam.RolePolicyAttachment(
-                    resource_name=f"{role_name}-managedpolicy-{managed_policy_arn.split('/')[-1]}",
-                    role=role_res.name,
-                    policy_arn=managed_policy_arn,
-                    opts=pulumi.ResourceOptions(parent=role_res)
-                )
-
-            # Attach inline policies if any
-            for inline_name, inline_policy in (role.inline_policies or {}).items():
-                aws.iam.RolePolicy(
-                    resource_name=f"{role_name}-inlinepolicy-{inline_name}",
-                    role=role_res.name,
-                    policy=inline_policy.json(),
-                    opts=pulumi.ResourceOptions(parent=role_res)
-                )
-
-            role_objects[role_key] = role_res
-
-        # --- Create Instance Profiles ---
-        for ip_key, ip in iam_config.instance_profiles.items():
-            # Map role name to resource
-            role_name = ip.role
-            if role_name not in role_objects:
-                raise ValueError(f"InstanceProfile '{ip_key}' references unknown role '{role_name}'")
-
-            ip_name = ip.name or ip_key
-
-            aws.iam.InstanceProfile(
-                resource_name=ip_name,
-                name=ip_name,
-                role=role_objects[role_name].name,
-                tags=global_tags,
-                opts=pulumi.ResourceOptions(
-                    retain_on_delete=False
-                )
+        # Attach inline policies
+        for pol_name, pol in (role_cfg.inline_policies or {}).items():
+            aws.iam.RolePolicy(
+                resource_name=f"{rname}-ip-{pol_name}",
+                role=role.name,
+                policy=pol.json(),
+                opts=pulumi.ResourceOptions(parent=role),
             )
 
-        # --- Create OIDC Providers ---
-        for oidc_key, oidc in iam_config.oidc_providers.items():
-            aws.iam.OpenIdConnectProvider(
-                resource_name=oidc_key,
-                url=oidc.url,
-                client_id_list=oidc.client_ids,
-                thumbprint_list=oidc.thumbprints,
-                opts=pulumi.ResourceOptions(
-                    retain_on_delete=False
-                )
-            )
+    # 3) Create Instance Profiles
+    for key, ip in cfg.instance_profiles.items():
+        if ip.role not in role_objs:
+            raise RuntimeError(f"InstanceProfile '{key}' references unknown role '{ip.role}'")
+        aws.iam.InstanceProfile(
+            resource_name=ip.name or key,
+            name=ip.name or key,
+            role=role_objs[ip.role].name,
+            tags=tags,
+        )
 
-        logger.info("Pulumi IAM provisioning complete.")
-
-    except Exception as e:
-        logger.error(f"Fatal error in IAM provisioning: {e}")
-        raise
-
+    pulumi.log.info("IAM provisioning complete.")
 
 if __name__ == "__main__":
     main()

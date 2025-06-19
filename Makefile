@@ -1,4 +1,6 @@
-.PHONY: install login force-pull pull push lc lc-status delete-lc rebase-continue tree clean
+.PHONY: install login force-pull pull push lc lc-status delete-lc rebase-continue tree clean s3 iam
+
+SHELL := /bin/bash
 
 login:
 	bash scripts/login.sh
@@ -56,6 +58,23 @@ s3:
 	python3 base_infra/s3.py
 
 iam:
-	@pip install -r base_infra/requirements.txt
-	cd base_infra/01_iam/ && python3 __main__.py
-	pulumi up
+	@echo "[INFO] Running Pulumi up for IAM in base_infra/01_iam/"; \
+	[ -f .env ] || { echo "[ERROR] .env not found. Run 'make s3' first.'"; exit 1; }; \
+	set -a; source .env; set +a; \
+	if [ -z "$$PULUMI_BACKEND_URL" ] || [ -z "$$PULUMI_CONFIG_PASSPHRASE" ]; then \
+		echo "[ERROR] .env must export PULUMI_BACKEND_URL and PULUMI_CONFIG_PASSPHRASE"; \
+		exit 1; \
+	fi; \
+	cd base_infra/01_iam && \
+	echo "[STEP] Logging in to Pulumi backend and ensuring 'prod' stack..." && \
+	PULUMI_CONFIG_PASSPHRASE=$$PULUMI_CONFIG_PASSPHRASE pulumi login "$$PULUMI_BACKEND_URL" && \
+	pulumi stack ls | grep -q '^prod' || pulumi stack init prod && \
+	echo "[STEP] Cancelling any stale lock..." && \
+	pulumi cancel --yes >/dev/null 2>&1 || true && \
+	echo "[STEP] Validating IAM config..." && \
+	python3 __main__.py && \
+	echo "[STEP] Previewing changes..." && \
+	PULUMI_CONFIG_PASSPHRASE=$$PULUMI_CONFIG_PASSPHRASE pulumi preview && \
+	echo "[STEP] Applying changes..." && \
+	PULUMI_CONFIG_PASSPHRASE=$$PULUMI_CONFIG_PASSPHRASE pulumi up --yes --non-interactive && \
+	cd "$$(git rev-parse --show-toplevel)"

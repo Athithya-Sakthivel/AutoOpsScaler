@@ -20,6 +20,7 @@ PYTHON_VERSION="3.11.8"
 preconfigure() {
   echo "[*] Preconfiguring system to avoid interactive prompts..."
   sudo apt-get update -yq
+  sudo apt install tree
   sudo apt-get install -yq debconf-utils
   for q in \
     "needrestart needrestart/restart boolean true" \
@@ -166,6 +167,22 @@ install_pulumi
 install_node_vite
 install_python
 mkdir -p tmp
+
+PLUGIN_NAME=aws
+PLUGIN_VERSION=6.44.0
+PLUGIN_ARCHIVE=pulumi-resource-${PLUGIN_NAME}-v${PLUGIN_VERSION}-linux-amd64.tar.gz
+PLUGIN_URL=https://github.com/pulumi/pulumi-${PLUGIN_NAME}/releases/download/v${PLUGIN_VERSION}/${PLUGIN_ARCHIVE}
+
+mkdir -p ~/.pulumi/plugins/resource-${PLUGIN_NAME}-v${PLUGIN_VERSION}
+
+echo "[INFO] Downloading ${PLUGIN_NAME} plugin v${PLUGIN_VERSION}..."
+wget -q --show-progress "$PLUGIN_URL"
+
+echo "[INFO] Extracting plugin..."
+tar -xzf "$PLUGIN_ARCHIVE" -C ~/.pulumi/plugins/resource-${PLUGIN_NAME}-v${PLUGIN_VERSION}/
+
+echo "[INFO] Cleaning up..."
+rm "$PLUGIN_ARCHIVE"
 
 echo "[✓] All tools installed & pinned with zero interactive prompts."
 echo "→ Open a new terminal or run 'source ~/.bashrc' to use ${PYTHON_VERSION} by default."

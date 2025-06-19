@@ -9,7 +9,7 @@ __pycache__/
 *.bak
 .DS_Store
 .env
-.env.*
+*.env
 .vagrant/
 
 # -----------------------
@@ -72,7 +72,7 @@ tmp/
 # -----------------------
 # VS Code, dev containers, editors
 # -----------------------
-
+.env
 .devcontainer/.python-version
 .idea/
 *.sublime-project
