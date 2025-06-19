@@ -1,93 +1,93 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-
-### CONFIGURATION ###
+# CONFIG
 NAME="autoopsscaler"
+PLUGIN_NAME="aws"
+PLUGIN_VERSION="6.44.0"
+PLUGIN_ARCHIVE="pulumi-resource-${PLUGIN_NAME}-v${PLUGIN_VERSION}-linux-amd64.tar.gz"
+PLUGIN_URL="https://github.com/pulumi/pulumi-${PLUGIN_NAME}/releases/download/v${PLUGIN_VERSION}/${PLUGIN_ARCHIVE}"
+PLUGIN_DIR="$HOME/.pulumi-host-plugins/resource-${PLUGIN_NAME}-v${PLUGIN_VERSION}-linux-amd64"
 SSH_DIR="$HOME/.ssh"
 SSH_CONFIG="$SSH_DIR/config"
 
-# Pulumi CLI version (optional, installs if missing)
-PULUMI_VERSION="4.45.2"
-PULUMI_INSTALLER="https://get.pulumi.com/?release=v${PULUMI_VERSION}&source=script"
-
-# AWS plugin version
-PLUGIN_NAME="aws"
-PLUGIN_VERSION="6.44.0"
-
-# Determine OS/ARCH for plugin URL
-OS="$(uname | tr '[:upper:]' '[:lower:]')"
-ARCH="$(uname -m)"
-case "$ARCH" in
-  x86_64) ARCH="amd64" ;;
-  arm64|aarch64) ARCH="arm64" ;;
-esac
-
-# Archive & cache paths
-PLUGIN_ARCHIVE="pulumi-resource-${PLUGIN_NAME}-v${PLUGIN_VERSION}-${OS}-${ARCH}.tar.gz"
-PLUGIN_URL="https://github.com/pulumi/pulumi-${PLUGIN_NAME}/releases/download/v${PLUGIN_VERSION}/${PLUGIN_ARCHIVE}"
-HOST_CACHE_DIR="$HOME/.pulumi-host-plugins/resource-${PLUGIN_NAME}-v${PLUGIN_VERSION}-${OS}-${ARCH}"
-
-### 1) SSH dir for host ###
 echo "→ Ensuring SSH dir: $SSH_DIR"
-mkdir -p "$SSH_DIR" && chmod 700 "$SSH_DIR"
+mkdir -p "$SSH_DIR"
+chmod 700 "$SSH_DIR"
 
-### 2) Install Pulumi CLI if missing ###
-if ! command -v pulumi >/dev/null 2>&1; then
-  echo "→ Installing Pulumi CLI v${PULUMI_VERSION}"
-  curl -fsSL "$PULUMI_INSTALLER" | bash
-  export PATH="$HOME/.pulumi/bin:$PATH"
-else
-  echo "→ Pulumi CLI present: $(pulumi version)"
-fi
+# ─────────────────────────────────────────
+# PRO TIP: Check for required CLI tools
+for cmd in curl tar vagrant ssh code; do
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    echo "❌ Required command '$cmd' not found. Please install it first."
+    exit 1
+  fi
+done
 
-### 3) Pre‑cache AWS plugin on host ###
-echo "→ Pre‑caching Pulumi plugin $PLUGIN_NAME v$PLUGIN_VERSION for $OS/$ARCH"
-mkdir -p "$HOST_CACHE_DIR"
-if [ ! -f "$HOST_CACHE_DIR/pulumi-resource-${PLUGIN_NAME}" ]; then
-  echo "   • Downloading $PLUGIN_URL"
-  curl -# -L "$PLUGIN_URL" -o "$PLUGIN_ARCHIVE"
-  echo "   • Extracting to $HOST_CACHE_DIR"
-  tar -xzf "$PLUGIN_ARCHIVE" -C "$HOST_CACHE_DIR"
+# ─────────────────────────────────────────
+# STEP 1: Install Pulumi plugin for Linux (used inside VM)
+if [ ! -d "$PLUGIN_DIR" ]; then
+  echo "→ Pre‑caching Pulumi plugin $PLUGIN_NAME v$PLUGIN_VERSION for Linux/amd64"
+
+  # Download with fallback
+  if command -v curl >/dev/null 2>&1; then
+    curl -# -L "$PLUGIN_URL" -o "$PLUGIN_ARCHIVE"
+  elif command -v wget >/dev/null 2>&1; then
+    wget --progress=bar:force "$PLUGIN_URL" -O "$PLUGIN_ARCHIVE"
+  else
+    echo "❌ Neither curl nor wget found. Install one of them."; exit 1
+  fi
+
+  mkdir -p "$PLUGIN_DIR"
+  echo "→ Extracting to $PLUGIN_DIR"
+  tar -xzf "$PLUGIN_ARCHIVE" -C "$PLUGIN_DIR"
   rm -f "$PLUGIN_ARCHIVE"
-  echo "   ✔ Cached plugin"
+  echo "✔️ Plugin extracted to $PLUGIN_DIR"
 else
-  echo "   ✔ Plugin already cached"
+  echo "✔️ Pulumi plugin already available at $PLUGIN_DIR"
 fi
 
-### 4) Bring up & provision VM ###
-echo "→ Starting VM: $NAME"
-vagrant up --provision
+# ─────────────────────────────────────────
+# STEP 2: Start VM and configure SSH
+echo "→ Starting VM: $NAME..."
+vagrant up
 
-### 5) Inject plugins into VM ###
-echo "→ Injecting Pulumi plugins into VM"
-vagrant ssh -c "mkdir -p ~/.pulumi/plugins && cp -r ~/.pulumi-host-plugins/* ~/.pulumi/plugins/ || true"
-
-### 6) Update host SSH config ###
-echo "→ Updating SSH config for host entry '$NAME'"
-if grep -q "^Host $NAME\$" "$SSH_CONFIG" 2>/dev/null; then
+echo "→ Cleaning old SSH block for $NAME in $SSH_CONFIG"
+if [ -f "$SSH_CONFIG" ]; then
   sed -i.bak "/^Host $NAME\$/,/^Host /{/^Host $NAME\$/!{/^Host /!d}}" "$SSH_CONFIG"
 fi
+
+echo "→ Adding fresh SSH config block"
 vagrant ssh-config | sed "s/^Host default/Host $NAME/" >> "$SSH_CONFIG"
 chmod 600 "$SSH_CONFIG"
-KEY_PATH="$(awk "/^Host $NAME\$/,/^Host /{ if (/IdentityFile/) print \$2 }" "$SSH_CONFIG" | head -n1)"
-[ -f "$KEY_PATH" ] && chmod 600 "$KEY_PATH" && echo "   ✔ Secured SSH key"
 
-### 7) (Optional) VS Code extensions ###
-if command -v code >/dev/null 2>&1; then
-  echo "→ Installing VS Code extensions..."
-  code --install-extension ms-vscode-remote.remote-ssh
-
-  echo "   ✔ Extension installed"
-fi
-
-### 8) Verify & Open ###
-echo "→ Verifying SSH to $NAME"
-if ssh -q "$NAME" exit; then
-  echo "   ✔ SSH OK"
-  echo "→ Reloading VM to pick up plugins and opening VS Code"
-  vagrant reload --provision
-  code --folder-uri "vscode-remote://ssh-remote+$NAME/vagrant"
+KEY_PATH=$(awk "/^Host $NAME\$/,/^Host /{ if (/IdentityFile/) print \$2 }" "$SSH_CONFIG" | head -n1)
+if [[ -n "$KEY_PATH" && -f "$KEY_PATH" ]]; then
+  chmod 600 "$KEY_PATH"
+  echo "✔️ Secured SSH key at $KEY_PATH"
 else
-  echo "   ❌ SSH failed"
-  exit 1
+  echo "⚠️ Warning: No private key found for $NAME"
 fi
+
+# ─────────────────────────────────────────
+# STEP 3: VSCode Remote setup
+echo "→ Installing VS Code extensions..."
+code --install-extension ms-vscode-remote.remote-ssh
+
+# ─────────────────────────────────────────
+# STEP 4: Test SSH connection
+echo "→ Verifying SSH connectivity..."
+ssh -q "$NAME" exit && echo "✔️ SSH works!" || { echo "❌ SSH failed."; exit 1; }
+
+# ─────────────────────────────────────────
+# STEP 5: Inject plugin into VM
+echo "→ Injecting Pulumi plugin into VM..."
+ssh "$NAME" 'mkdir -p ~/.pulumi/plugins/resource-aws-v6.44.0'
+scp "$PLUGIN_DIR/pulumi-resource-${PLUGIN_NAME}" "$NAME:~/.pulumi/plugins/resource-aws-v6.44.0/"
+echo "✔️ Pulumi plugin injected inside VM."
+
+# ─────────────────────────────────────────
+# STEP 6: Open VSCode in Remote
+echo "→ Opening VS Code with Remote SSH workspace..."
+vagrant reload --provision
+code --folder-uri "vscode-remote://ssh-remote+$NAME/vagrant"
