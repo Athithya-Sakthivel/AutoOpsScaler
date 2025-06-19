@@ -26,7 +26,7 @@ install:
 	[ -d .venv ] || python3 -m venv .venv
 	. .venv/bin/activate && \
 	pip install --upgrade pip && \
-	pip install -r requirements.txt
+	pip install -r data_pipeline/modules/extract_load/requirements.txt
 
 push:
 	git add .

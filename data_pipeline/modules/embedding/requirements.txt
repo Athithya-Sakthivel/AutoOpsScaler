@@ -1,1 +1,15 @@
 # Path: indexing/modules/requirements.txt
+
+sentence-transformers==2.2.2
+transformers==4.31.0
+torch==2.0.1
+numpy==1.24.4
+scipy==1.10.1
+qdrant-client==1.4.1
+psycopg2-binary==2.9.6
+opentelemetry-api==1.19.0
+loguru==0.7.0
+llama-index==0.8.40
+ray==2.6.3
+ray[serve]==2.6.3
+ray[workflow]==2.6.3

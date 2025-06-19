@@ -1,1 +1,10 @@
-# Path: ELT/modules/extract_load/requirements.txt
+boto3==1.28.57
+botocore==1.31.57
+scrapy==2.9.0
+playwright==1.39.0
+requests==2.31.0
+python-dateutil==2.8.2
+llama-index==0.8.40
+ray==2.6.3
+ray[serve]==2.6.3
+ray[workflow]==2.6.3

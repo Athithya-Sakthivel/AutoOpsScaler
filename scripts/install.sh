@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-
 # === CONFIG ===
 export DEBIAN_FRONTEND=noninteractive
 export APT_LISTCHANGES_FRONTEND=none
@@ -12,15 +11,14 @@ KUBECTL_VERSION="v1.29.0"
 EKSCTL_VERSION="v0.174.0"
 FLUX_VERSION="v2.2.3"
 HELM_VERSION="v3.14.3"
-PULUMI_VERSION="3.112.0"
+TERRAFORM_VERSION="1.5.7"
 NODE_VERSION="20.x"
-DOCKER_COMPOSE_VERSION="2.20.2"
 PYTHON_VERSION="3.11.8"
 
 preconfigure() {
   echo "[*] Preconfiguring system to avoid interactive prompts..."
   sudo apt-get update -yq
-  sudo apt install tree
+  sudo apt install -yq tree
   sudo apt-get install -yq debconf-utils
   for q in \
     "needrestart needrestart/restart boolean true" \
@@ -126,18 +124,16 @@ install_helm() {
   fi
 }
 
-install_pulumi() {
-  echo "[*] Installing Pulumi ${PULUMI_VERSION}..."
-  current="$(pulumi version 2>/dev/null || echo)"
-  if [[ "$current" != "$PULUMI_VERSION" ]]; then
-    curl -fSL https://get.pulumi.com | sh -s -- --version "${PULUMI_VERSION}" --yes
-    export PATH="$PATH:$HOME/.pulumi/bin"
-    grep -qxF 'export PATH=$PATH:$HOME/.pulumi/bin' ~/.bashrc || \
-      echo 'export PATH=$PATH:$HOME/.pulumi/bin' >> ~/.bashrc
+install_terraform() {
+  echo "[*] Installing Terraform ${TERRAFORM_VERSION}..."
+  if ! command -v terraform &>/dev/null || [[ "$(terraform version | head -n1 | awk '{print $2}')" != "v${TERRAFORM_VERSION}" ]]; then
+    tf_zip="terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
+    curl -fSL "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/${tf_zip}" -o "/tmp/${tf_zip}"
+    unzip -o "/tmp/${tf_zip}" -d /tmp
+    sudo mv /tmp/terraform /usr/local/bin/terraform
+    rm "/tmp/${tf_zip}"
   fi
 }
-
-
 
 install_node_vite() {
   echo "[*] Installing Node.js ${NODE_VERSION} & Vite..."
@@ -163,11 +159,10 @@ install_kubectl
 install_eksctl
 install_flux
 install_helm
-install_pulumi
+install_terraform
 install_node_vite
 install_python
 mkdir -p tmp
-
 
 echo "[✓] All tools installed & pinned with zero interactive prompts."
 echo "→ Open a new terminal or run 'source ~/.bashrc' to use ${PYTHON_VERSION} by default."

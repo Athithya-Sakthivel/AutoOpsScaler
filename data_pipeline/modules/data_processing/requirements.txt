@@ -1,1 +1,13 @@
 # Path: ELT/modules/data_preprocessing/requirements.txt
+
+
+unstructured==0.10.12
+trafilatura==1.4.0
+beautifulsoup4==4.12.2
+lxml==4.9.3
+tqdm==4.66.1
+loguru==0.7.0
+llama-index==0.8.40
+ray==2.6.3
+ray[serve]==2.6.3
+ray[workflow]==2.6.3
