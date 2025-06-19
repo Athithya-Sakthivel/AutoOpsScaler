@@ -131,7 +131,7 @@ AutoOpsScaler/
 │           ├── s3_uploader.py          # uploads raw files to S3 via boto3
 │           └── web_scraper.py          # Scrapy+Playwright scraper with dedupe logic
 |
-├── docs/                       # documentation hub for infra & platform
+├── docs/                       # documentation for infra & platform
 |
 ├── inference_pipeline
 │   ├── api
