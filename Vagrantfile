@@ -3,9 +3,6 @@ Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/jammy64"
   config.vm.box_version = "20241002.0.0"
   config.vm.synced_folder ".", "/vagrant", type: "rsync"
-
-  # Pulumi plugin sync (downloading this in host device is much faster)
-  config.vm.synced_folder ".pulumi-host-plugins", "/home/vagrant/.pulumi-host-plugins", type: "rsync", create: true
   config.ssh.insert_key = false
   config.vm.network "private_network", ip: "192.168.56.18"
 
@@ -19,19 +16,19 @@ Vagrant.configure("2") do |config|
 
   config.vm.provision "shell", inline: <<-SHELL
 
-    # Fix DNS permanently
+    # === Fix DNS permanently ===
     sudo sed -i 's/^#DNS=/DNS=8.8.8.8 1.1.1.1/' /etc/systemd/resolved.conf || true
     sudo sed -i 's/^#FallbackDNS=/FallbackDNS=8.8.4.4/' /etc/systemd/resolved.conf || true
     sudo systemctl restart systemd-resolved
     sudo rm -f /etc/resolv.conf
     sudo ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
 
-    # Base tools
+    # === Install base tools ===
     sudo apt-get update -y
     sudo apt-get install -y --no-install-recommends \
-      build-essential curl git make gh ca-certificates gnupg lsb-release
+      build-essential curl git make gh ca-certificates gnupg lsb-release unzip
 
-    # Docker install (pinned)
+    # === Install Docker (pinned version) ===
     DOCKER_VERSION="5:27.5.1-1~ubuntu.22.04~jammy"
     sudo mkdir -p /etc/apt/keyrings
     if [ ! -f /etc/apt/keyrings/docker.gpg ]; then
@@ -52,10 +49,7 @@ Vagrant.configure("2") do |config|
     fi
     sudo apt-mark hold docker-ce docker-ce-cli containerd.io
     sudo usermod -aG docker vagrant
-
-    # Pulumi plugins
-    mkdir -p ~/.pulumi/plugins
-    cp -r ~/.pulumi-host-plugins/* ~/.pulumi/plugins/ || true
-    echo "✔️ Pulumi plugins injected."
+    sudo systemctl enable docker
+    
   SHELL
 end

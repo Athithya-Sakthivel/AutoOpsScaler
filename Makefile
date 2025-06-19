@@ -56,19 +56,5 @@ clean:
 s3:
 	python3 base_infra/s3.py
 
-iam:
-	@echo "[INFO] Running Pulumi up for IAM from base_infra/"
-	@[ -f .env ] || { echo "[ERROR] .env not found. Run 'make s3' first."; exit 1; }
-	@set -a; source .env; set +a
-	@cd base_infra && \
-	echo "[STEP] Logging in to Pulumi backend and ensuring 'prod' stack..." && \
-	PULUMI_CONFIG_PASSPHRASE=$$PULUMI_CONFIG_PASSPHRASE pulumi login "$$PULUMI_BACKEND_URL" && \
-	pulumi stack ls | grep -q '^prod' || pulumi stack init prod && \
-	echo "[STEP] Cancelling any stale lock..." && \
-	pulumi cancel --yes >/dev/null 2>&1 || true && \
-	echo "[STEP] Validating IAM config..." && \
-	python3 01_iam/__main__.py && \
-	echo "[STEP] Previewing changes..." && \
-	PULUMI_CONFIG_PASSPHRASE=$$PULUMI_CONFIG_PASSPHRASE pulumi preview --cwd ./01_iam && \
-	echo "[STEP] Applying changes..." && \
-	PULUMI_CONFIG_PASSPHRASE=$$PULUMI_CONFIG_PASSPHRASE pulumi up --yes --non-interactive --cwd ./01_iam
+iam-bootstrap:
+	chmod +x scripts/iam_bootstrap.sh && bash scripts/iam_bootstrap.sh

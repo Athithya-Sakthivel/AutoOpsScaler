@@ -1,5 +1,0 @@
-# Auto-generated when pulumi stack init is used with passphrase-based encryption. Do not change this. It's safe to commit.
-encryptionsalt: v1:EqLn/rXd/SA=:v1:e8inqCVsn6Yzr08L:jO1R6Z9VJcL8ZFoNx0mvCt7alf6zFA== 
-config:
-  autoopsscaler-iam:project: autoopsscaler
-  aws:profile: default

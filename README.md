@@ -43,33 +43,44 @@ AutoOpsScaler/
 |   ├── qdrant.yml                      # Qdrant StatefulSet, EBS PVC, and Service manifest
 |   └── README.md                       # Guidelines for writing and validating config files
 |
-|── base_infra/                         # Pulumi modules for validating configs and provisioning infra
+|── base_infra/                          # Pulumi modules for validating configs and provisioning infra
 |   ├── 01_iam/
-|   │   ├── __main__.py                 # Loads & validates iam.yml, provisions IAM roles/policies
-|   │   └── iam.py                      # Helper functions for IAM resource definitions
+|   │   ├── __init__.py                 # Python package marker for IAM module
+|   │   ├── iam.py                      # IAM resource definitions and Pulumi provisioning logic
+|   │   └── validators.py               # IAM YAML config validation with Pydantic
 |   ├── 02_vpc/
-|   │   ├── __main__.py                 # Loads & validates vpc.yml, provisions VPC, subnets, and IGW
-|   │   └── vpc.py                      # Helper functions for VPC and networking setup
+|   │   ├── __init__.py                 # Python package marker for VPC module
+|   │   ├── vpc.py                      # VPC and networking provisioning helpers
+|   │   └── validators.py               # VPC YAML config validation schemas
 |   ├── 03_eks/
-|   │   ├── __main__.py                 # Loads & validates eks.yml, provisions EKS cluster & nodegroups
-|   │   └── eks.py                      # Helper functions for EKS resource creation
+|   │   ├── __init__.py                 # Python package marker for EKS module
+|   │   ├── eks.py                      # EKS cluster and nodegroup provisioning helpers
+|   │   └── validators.py               # EKS YAML config validation logic
 |   ├── 04_karpenter/
-|   │   ├── __main__.py                 # Loads & validates karpenter.yml, deploys Karpenter CRDs
-|   │   └── karpenter.py                # Helper functions for Karpenter Provisioner logic
+|   │   ├── __init__.py                 # Python package marker for Karpenter module
+|   │   ├── karpenter.py                # Karpenter provisioner and autoscaling logic
+|   │   └── validators.py               # Karpenter YAML config validation schemas
 |   ├── 05_observability/
-|   │   ├── __main__.py                 # Loads & validates observability.yml, deploys monitoring stack
-|   │   └── observability.py            # Helper functions for Prometheus/Grafana deployment for eks, RayJob, RayService
+|   │   ├── __init__.py                 # Python package marker for observability module
+|   │   ├── observability.py            # Prometheus/Grafana monitoring stack provisioning helpers
+|   │   └── validators.py               # Observability YAML config validation logic
 |   ├── 06_secrets/
-|   │   ├── __main__.py                 # Loads & validates secrets.yml, provisions Secrets Manager entries
-|   │   └── secrets.py                  # Helper functions for secrets handling
+|   │   ├── __init__.py                 # Python package marker for secrets module
+|   │   ├── secrets.py                  # Secrets Manager provisioning helpers
+|   │   └── validators.py               # Secrets YAML config schema validation
 |   ├── 07_zalando_operator/
-|   │   ├── __main__.py                 # Loads & validates zalando_operator.yml, installs Postgres Operator
-|   │   └── zalando_operator.py         # Helper logic for Zalando Operator and CRDs
+|   │   ├── __init__.py                 # Python package marker for Zalando Operator module
+|   │   ├── zalando_operator.py         # Postgres operator and CRDs deployment helpers
+|   │   └── validators.py               # Zalando Operator YAML config validation logic
 |   ├── 08_qdrant/
-|   │   ├── __main__.py                 # Loads & validates qdrant.yml, deploys Qdrant StatefulSet & PVC
-|   │   └── qdrant.py                   # Helper functions for Qdrant resource management
-|   ├── pulumi.yaml                     # Pulumi project metadata: name, runtime, and backend
-|   └── Pulumi.prod.yaml                # Production stack config: region, cluster name, scaling limits
+|   │   ├── __init__.py                 # Python package marker for Qdrant module
+|   │   ├── qdrant.py                   # Qdrant StatefulSet, PVC, and service provisioning helpers
+|   │   └── validators.py               # Qdrant YAML config schema validation
+|   ├── Pulumi.prod.yaml                # Production stack config: region, cluster, scaling limits
+|   ├── Pulumi.yaml                    # Pulumi project metadata: project name, runtime, backend
+|   ├── __init__.py                    # Python package marker for base_infra root package
+|   ├── __main__.py                    # Pulumi main entrypoint orchestrating all infra modules
+|   └── s3.py                         # S3 helper script for bucket operations and uploads
 |
 |── Makefile                            # Unified commands for validate, build, and deploy workflows
 |
