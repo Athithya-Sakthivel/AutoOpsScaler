@@ -11,6 +11,8 @@ Persists the structure with placeholder files uploaded from vagrant/tmp/.
 
 """
 
+# ignore Import "boto3" could not be resolvedPylancereportMissingImports warnings
+
 import boto3
 import botocore
 import os

@@ -2,15 +2,24 @@
   "files.autoSave": "afterDelay",
   "files.autoSaveDelay": 1000,
 
-  // ✅ Use Ruff for formatting instead of Black
+  //  Use Ruff for formatting instead of Black
   "python.formatting.provider": "none",   // disables black/isort auto-selection
 
-  // ✅ Use Ruff extension instead of flake8 for linting
+  //  Use Ruff extension instead of flake8 for linting
   "python.linting.enabled": false,        // disables built-in flake8/pylint
   "ruff.enable": true,                    // Ruff extension handles lint+format
 
   // Format on save
   "editor.formatOnSave": true,
+
+  //  Use the project's .venv for Pylance, so imports like boto3 are resolved
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/base_infra",
+    "${workspaceFolder}/utils"
+  ],
+  "python.analysis.autoSearchPaths": true,
+  "python.analysis.useLibraryCodeForTypes": true,
 
   // Integrated terminal defaults
   "terminal.integrated.defaultProfile.windows": "Git Bash",
