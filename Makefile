@@ -19,9 +19,8 @@ pull:
 	git rebase origin/main
 
 install:
-	chmod +x scripts/install.sh && sudo bash scripts/install.sh 
-	
-
+	chmod +x scripts/install.sh
+	bash scripts/install.sh
 
 push:
 	git add .
@@ -47,6 +46,9 @@ tree:
 
 clean:
 	find . -type d -name '__pycache__' -exec rm -rf {} + && find . -type f -name '*.py[co]' -delete
+
+s3:
+	mkdir -p tmp
 
 iam:
 	@pip install -r base_infra/requirements.txt

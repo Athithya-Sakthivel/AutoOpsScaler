@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+
 
 # === CONFIG ===
 export DEBIAN_FRONTEND=noninteractive
@@ -136,22 +136,7 @@ install_pulumi() {
   fi
 }
 
-install_docker() {
-  echo "[*] Installing Docker & Compose ${DOCKER_COMPOSE_VERSION}..."
-  if ! command -v docker &>/dev/null; then
-    curl -fSL https://get.docker.com -o get-docker.sh
-    sudo sh get-docker.sh
-    rm get-docker.sh
 
-  fi
-  sudo usermod -aG docker "$USER" || true
-  sudo apt-get remove -yq docker-compose || true
-  sudo curl -fSL \
-    "https://github.com/docker/compose/releases/download/v${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" \
-    -o /usr/local/bin/docker-compose
-  sudo chmod +x /usr/local/bin/docker-compose
-  
-}
 
 install_node_vite() {
   echo "[*] Installing Node.js ${NODE_VERSION} & Vite..."
@@ -178,10 +163,7 @@ install_eksctl
 install_flux
 install_helm
 install_pulumi
-install_docker
 install_node_vite
 install_python
-
-echo
 echo "[✓] All tools installed & pinned with zero interactive prompts."
-echo "→ Open a new shell or run 'source ~/.bashrc' to use Python ${PYTHON_VERSION} by default."
+echo "→ Open a new terminal or run 'source ~/.bashrc' to use ${PYTHON_VERSION} by default."

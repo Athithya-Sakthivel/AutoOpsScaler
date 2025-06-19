@@ -19,7 +19,7 @@ roles:
     description: "Pulumi deploy role assumed via GitHub Actions OIDC"
     assume_role_policy: github_oidc  # [DO NOT OVERRIDE] Enables federated GitHub → AWS auth via OIDC
     managed_policies:
-      - arn:aws:iam::aws:policy/AdministratorAccess  # [ALTERNATIVE] Use PowerUserAccess for dev-only CI/CD; restrict further in prod
+      - arn:aws:iam::aws:policy/AdministratorAccess  # [ALTERNATIVE] Use PowerUserAccess for dev-only CI/CD; 
     max_session_duration: 3600  # [OPTIONAL] Use 43200 for long GitHub workflows (e.g. large EKS provisioning)
 
   eks_cluster:
