@@ -4,9 +4,8 @@ Vagrant.configure("2") do |config|
   config.vm.box_version = "20241002.0.0"
   config.vm.synced_folder ".", "/vagrant", type: "rsync"
 
-  # Pulumi plugin sync
+  # Pulumi plugin sync (slower in vagrant)
   config.vm.synced_folder ".pulumi-host-plugins", "/home/vagrant/.pulumi-host-plugins", type: "rsync", create: true
-
   config.ssh.insert_key = false
   config.vm.network "private_network", ip: "192.168.56.18"
 
@@ -19,6 +18,7 @@ Vagrant.configure("2") do |config|
   end
 
   config.vm.provision "shell", inline: <<-SHELL
+    set -euxo pipefail
 
     # Fix DNS permanently
     sudo sed -i 's/^#DNS=/DNS=8.8.8.8 1.1.1.1/' /etc/systemd/resolved.conf || true
