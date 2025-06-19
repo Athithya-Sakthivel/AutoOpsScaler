@@ -68,7 +68,7 @@ env/
 coverage.xml
 htmlcov/
 get-docker.sh
-
+tmp/
 # -----------------------
 # VS Code, dev containers, editors
 # -----------------------

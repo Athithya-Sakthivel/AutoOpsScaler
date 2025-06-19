@@ -165,5 +165,7 @@ install_helm
 install_pulumi
 install_node_vite
 install_python
+mkdir -p tmp
+
 echo "[✓] All tools installed & pinned with zero interactive prompts."
 echo "→ Open a new terminal or run 'source ~/.bashrc' to use ${PYTHON_VERSION} by default."

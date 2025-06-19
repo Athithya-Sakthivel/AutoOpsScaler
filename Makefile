@@ -21,6 +21,11 @@ pull:
 install:
 	chmod +x scripts/install.sh
 	bash scripts/install.sh
+	[ -d .venv ] || python3 -m venv .venv
+	. .venv/bin/activate && \
+	pip install --upgrade pip && \
+	pip install -r requirements.txt
+	echo ". .venv/bin/activate" >> ~/.bashrc
 
 push:
 	git add .
@@ -48,7 +53,7 @@ clean:
 	find . -type d -name '__pycache__' -exec rm -rf {} + && find . -type f -name '*.py[co]' -delete
 
 s3:
-	mkdir -p tmp
+	python3 base_infra/s3.py
 
 iam:
 	@pip install -r base_infra/requirements.txt
