@@ -4,7 +4,7 @@ Vagrant.configure("2") do |config|
   config.vm.box_version = "20241002.0.0"
   config.vm.synced_folder ".", "/vagrant", type: "rsync"
 
-  # Pulumi plugin sync (slower in vagrant)
+  # Pulumi plugin sync (downloading this in host device is much faster)
   config.vm.synced_folder ".pulumi-host-plugins", "/home/vagrant/.pulumi-host-plugins", type: "rsync", create: true
   config.ssh.insert_key = false
   config.vm.network "private_network", ip: "192.168.56.18"
