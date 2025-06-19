@@ -3,30 +3,39 @@
 # THIS SCRIPT IS FOR DEV PURPOSE ONLY DO NOT USE IN PRODUCTION
 
 
+#!/bin/bash
+set -euo pipefail
 
+echo "Starting S3 buckets deletion process..."
 
-for bucket in $(aws s3api list-buckets --query "Buckets[].Name" --output text); do
+# List all buckets
+buckets=$(aws s3api list-buckets --query "Buckets[].Name" --output text)
+
+for bucket in $buckets; do
   echo "Processing bucket: $bucket"
 
-  # Remove all object versions
-  versions=$(aws s3api list-object-versions --bucket "$bucket" --query 'Versions[].{Key:Key,VersionId:VersionId}' --output text)
-  if [ -n "$versions" ]; then
-    echo "$versions" | while read key version; do
-      aws s3api delete-object --bucket "$bucket" --key "$key" --version-id "$version" --output text
-    done
+  # Remove all object versions (if any)
+  aws s3api list-object-versions --bucket "$bucket" --output json | jq -c '.Versions[]?, .DeleteMarkers[]?' | while read -r obj; do
+    key=$(echo "$obj" | jq -r '.Key')
+    versionId=$(echo "$obj" | jq -r '.VersionId')
+
+    if [[ -n "$key" && -n "$versionId" && "$versionId" != "null" ]]; then
+      echo "Deleting object: $key (version: $versionId)"
+      aws s3api delete-object --bucket "$bucket" --key "$key" --version-id "$versionId" --only-show-errors
+    fi
+  done
+
+  # Remove any remaining unversioned objects
+  echo "Removing remaining unversioned objects (if any)..."
+  aws s3 rm "s3://$bucket" --recursive --only-show-errors || true
+
+  # Try deleting the bucket
+  echo "Deleting bucket: $bucket"
+  if aws s3api delete-bucket --bucket "$bucket" --only-show-errors; then
+    echo "Bucket $bucket deleted successfully."
+  else
+    echo "Failed to delete bucket $bucket (may still contain objects or versions)."
   fi
-
-  # Remove delete markers
-  markers=$(aws s3api list-object-versions --bucket "$bucket" --query 'DeleteMarkers[].{Key:Key,VersionId:VersionId}' --output text)
-  if [ -n "$markers" ]; then
-    echo "$markers" | while read key version; do
-      aws s3api delete-object --bucket "$bucket" --key "$key" --version-id "$version" --output text
-    done
-  fi
-
-  # Remove any remaining objects (non-versioned / unversioned case)
-  aws s3 rm "s3://$bucket" --recursive --only-show-errors
-
-  # Attempt to delete the bucket
-  aws s3api delete-bucket --bucket "$bucket" --output text || echo "Failed to delete $bucket"
 done
+
+echo "S3 buckets deletion process completed."

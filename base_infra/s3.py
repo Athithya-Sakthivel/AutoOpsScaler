@@ -15,7 +15,6 @@ Persists the structure with placeholder files uploaded from vagrant/tmp/.
 
 import boto3
 import botocore
-import os
 from datetime import datetime
 from pathlib import Path
 
