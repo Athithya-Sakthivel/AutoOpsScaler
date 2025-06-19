@@ -54,7 +54,7 @@ clean:
 	find . -type d -name '__pycache__' -exec rm -rf {} + && find . -type f -name '*.py[co]' -delete
 
 s3:
-	python3 base_infra/s3.py
+	python3 infra/s3.py
 
 iam-bootstrap:
 	chmod +x scripts/iam_bootstrap.sh && bash scripts/iam_bootstrap.sh

@@ -1,51 +1,49 @@
-#!/usr/bin/env bash
+#!/bin/bash
+# infra/dev/install-k3d.sh
+# Idempotent script to install stable k3d (v5.4.8) on Ubuntu 22.04
+
 set -euo pipefail
 
-# === CONFIG ===
-K3D_VERSION="v5.6.3"     # Pin a stable known version
-CLUSTER_NAME="my-local-cluster" # Change as needed
-AGENTS=2                 # Number of worker nodes
+K3D_VERSION="v5.4.8"
+INSTALL_PATH="/usr/local/bin/k3d"
 
-# === FUNCTIONS ===
+echo "Checking if k3d is installed..."
 
-install_k3d() {
-  echo "[*] Installing k3d ${K3D_VERSION}..."
-  if ! command -v k3d >/dev/null 2>&1 || [[ "$(k3d --version 2>/dev/null | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+')" != "${K3D_VERSION}" ]]; then
-    curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | TAG=${K3D_VERSION} bash
-  else
-    echo "[=] k3d ${K3D_VERSION} already installed."
-  fi
-}
+if command -v k3d &>/dev/null; then
+    INSTALLED_VERSION=$(k3d version --short | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+')
+    if [[ "$INSTALLED_VERSION" == "$K3D_VERSION" ]]; then
+        echo "k3d $K3D_VERSION is already installed. Skipping installation."
+        exit 0
+    else
+        echo "Different k3d version detected: $INSTALLED_VERSION. Reinstalling $K3D_VERSION..."
+    fi
+else
+    echo "k3d not found. Installing version $K3D_VERSION..."
+fi
 
-create_k3d_cluster() {
-  echo "[*] Creating k3d cluster '${CLUSTER_NAME}' with ${AGENTS} agents..."
-  if k3d cluster list | grep -q "^${CLUSTER_NAME}\b"; then
-    echo "[=] Cluster '${CLUSTER_NAME}' already exists."
-  else
-    k3d cluster create "${CLUSTER_NAME}" --agents ${AGENTS} --wait
-  fi
-}
+# Download k3d binary
+curl -Lo /tmp/k3d https://github.com/k3d-io/k3d/releases/download/${K3D_VERSION}/k3d-linux-amd64
 
-set_kubectl_context() {
-  echo "[*] Setting kubectl context to k3d-${CLUSTER_NAME}..."
-  kubectl config use-context "k3d-${CLUSTER_NAME}"
-}
+# Validate download
+if [[ ! -s /tmp/k3d ]]; then
+    echo "Failed to download k3d binary." >&2
+    exit 1
+fi
 
-display_cluster_info() {
-  echo "[*] Current kubectl context:"
-  kubectl config current-context
-  echo
-  echo "[*] Cluster nodes:"
-  kubectl get nodes
-  echo
-  echo "[*] Cluster info:"
-  kubectl cluster-info
-}
+# Install binary
+chmod +x /tmp/k3d
+sudo mv /tmp/k3d $INSTALL_PATH
 
-# === RUN ===
-install_k3d
-create_k3d_cluster
-set_kubectl_context
-display_cluster_info
+# Verify installation
+if ! command -v k3d &>/dev/null; then
+    echo "k3d installation failed." >&2
+    exit 1
+fi
 
-echo "[✓] k3d ${K3D_VERSION} installed, cluster '${CLUSTER_NAME}' ready, and kubectl configured."
+INSTALLED_VERSION=$(k3d version --short | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+')
+if [[ "$INSTALLED_VERSION" != "$K3D_VERSION" ]]; then
+    echo "Installed k3d version ($INSTALLED_VERSION) does not match expected ($K3D_VERSION)." >&2
+    exit 1
+fi
+
+echo "k3d $K3D_VERSION installed successfully."
