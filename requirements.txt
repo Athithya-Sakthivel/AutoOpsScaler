@@ -1,4 +1,4 @@
-# Stable older versions that are well supported by AI tools
+# Stable older versions for AI tools
 
 pulumi-aws==6.83.0
 boto3==1.34.83

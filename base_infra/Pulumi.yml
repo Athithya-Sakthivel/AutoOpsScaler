@@ -1,0 +1,3 @@
+name: autoopsscaler-iam
+runtime: python
+description: Generating the base infrastructure for autoopsscaler
