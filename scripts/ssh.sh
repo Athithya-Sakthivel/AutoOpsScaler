@@ -76,12 +76,8 @@ KEY_PATH="$(awk "/^Host $NAME\$/,/^Host /{ if (/IdentityFile/) print \$2 }" "$SS
 if command -v code >/dev/null 2>&1; then
   echo "→ Installing VS Code extensions..."
   code --install-extension ms-vscode-remote.remote-ssh
-  code --install-extension ms-python.python
-  code --install-extension ms-azuretools.vscode-docker
-  code --install-extension ms-kubernetes-tools.vscode-kubernetes-tools
-  code --install-extension charliermarsh.ruff
-  code --install-extension necatiarslan.aws-s3-vscode-extension
-  echo "   ✔ Extensions installed"
+
+  echo "   ✔ Extension installed"
 fi
 
 ### 8) Verify & Open ###
