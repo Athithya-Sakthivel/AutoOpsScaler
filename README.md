@@ -31,8 +31,9 @@ AutoOpsScaler/
 │
 ├── infra/
 │   ├── dev/
-│   │   ├── delete-lc.sh                # deletes local K3D cluster and resources
-│   │   └── lc.sh                       # creates local K3D cluster for testing
+│   │   ├── delete-lc.sh                # Deletes local K3D cluster and resources
+│   │   └── lc.sh                       # Creates local K3D cluster for testing
+│   │
 │   ├── prod/
 │   │   ├── eks/
 │   │   │   └── eks.tf                  # EKS cluster provisioning (managed nodegroups)
@@ -42,36 +43,53 @@ AutoOpsScaler/
 │   │   │   └── iam_irsa.tf             # IRSA role for Lambda to call Kubernetes
 │   │   ├── vpc/
 │   │   │   └── vpc.tf                  # VPC, subnets, IGW, NAT
-│   │   ├── main.tf                     # Terraform root module
+│   │   ├── main.tf                     # Terraform root module for prod
 │   │   ├── outputs.tf                  # Output variables for IRSA/EKS cluster
 │   │   ├── outputs.tfvars              # Exported values from Terraform for other tooling
-│   │   ├── terraform.tfvars            # Terraform prod values
+│   │   ├── terraform.tfvars            # Terraform prod input values
 │   │   └── variables.tf                # Input variable definitions
-│   └── s3.py                           # helper script to create S3 bucket and folders
+│   │
+│   └── s3.py                           # Python helper script to create S3 bucket and folders
 │
 ├── lambda_deploy_rayjob/
-│   ├── lambda_function.py              # Lambda function handler (submits RayJob on upload)
-│   ├── requirements.txt                # boto3 + kubernetes deps
-│   ├── rayjob_template.yml             # RayJob manifest with dynamic interpolation
-│   └── Dockerfile                      # Lambda-compatible container if deploying via ECR
+│   ├── lambda_function.py              # Lambda function to submit RayJob on S3 upload
+│   ├── requirements.txt                # Lambda dependencies (boto3, kubernetes, etc.)
+│   ├── rayjob_template.yml             # RayJob manifest with dynamic placeholders
+│   └── Dockerfile                      # Lambda-compatible container (for ECR-based deployment)
 │
 ├── flux/
 │   ├── base/
-│   │   ├── configmap.yml               # non-secret config
-│   │   ├── ingress.yml                 # Traefik IngressRoute + Middleware
-│   │   ├── k8s-secrets.yml             # Secrets for cluster
-│   │   ├── kustomization.yml           # Flux base layer
-│   │   ├── namespace.yml               # dev and prod namespaces
-│   │   ├── prometheus.yml              # Prometheus + Grafana setup
-│   │   ├── qdrant.yml                  # Qdrant StatefulSet + PVC + Service
-│   │   ├── ray_job.yml                 # RayJob spec (batch for embedding)
-│   │   ├── ray_service.yml             # Always-on RayService for inference
-│   │   └── zalando.yml                 # Zalando Postgres Operator + cluster spec
+│   │   ├── apps/
+│   │   │   ├── qdrant.yml              # Qdrant StatefulSet, PVC, and Service
+│   │   │   ├── ray_job.yml             # RayJob (batch inference workload)
+│   │   │   ├── ray_service.yml         # RayService (persistent online service)
+│   │   │   ├── prometheus.yml          # Prometheus stack (Prometheus, Grafana, Alertmanager)
+│   │   │   └── kustomization.yml       # Groups all app manifests
+│   │   │
+│   │   ├── config/
+│   │   │   ├── configmap.yml           # Global ConfigMap
+│   │   │   ├── ingress.yml             # Traefik IngressRoute and Middleware
+│   │   │   ├── k8s-secrets.yml         # Kubernetes Secret resources
+│   │   │   ├── namespace.yml           # dev/prod Namespace definitions
+│   │   │   └── kustomization.yml       # Groups all config resources
+│   │   │
+│   │   ├── infra/
+│   │   │   ├── karpenter.cpu.yml       # Karpenter provisioner for CPU-optimized pods
+│   │   │   ├── karpenter.gpu.yml       # Karpenter provisioner for GPU workloads
+│   │   │   ├── zalando/
+│   │   │   │   ├── operator.yml        # Zalando Postgres Operator Deployment
+│   │   │   │   ├── rbac.yml            # ServiceAccount, Role, RoleBinding
+│   │   │   │   └── cluster.yml         # PostgresCluster CR (acid.zalan.do/v1)
+│   │   │   └── kustomization.yml       # Groups all infra manifests
+│   │   │
+│   │   └── kustomization.yml           # Flux base root: includes apps/, config/, infra/
+│   |
 │   └── overlays/
 │       ├── dev/
-│       │   └── kustomization.yml       # dev-specific Flux patch
+│       │   └── kustomization.yml       # Kustomize overlays for dev environment
+│       │
 │       └── prod/
-│           └── kustomization.yml       # prod-specific Flux patch
+│           └── kustomization.yml       # Kustomize overlays for prod environment
 |
 ├── data_pipeline
 │   ├── data_pipeline_config.yml        # central ELT & embedding pipeline settings
@@ -177,7 +195,7 @@ AutoOpsScaler/
 │   ├── test_ingestion.py               # tests for extract-load logic
 │   ├── test_rag.py                     # tests for RAG retriever & generator
 │   └── test_vector.py                  # tests for Qdrant upsert & query ops
-|
+
 
 ```
 
