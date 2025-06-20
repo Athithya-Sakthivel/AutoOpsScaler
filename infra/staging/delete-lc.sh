@@ -1,106 +1,93 @@
 #!/usr/bin/env bash
-set -euo pipefail
 
 CLUSTER_NAME="autoopsscaler-dev"
 REGISTRY_NAME="k3d-${CLUSTER_NAME}-registry"
 REGISTRY_PORT="5000"
 REGISTRY_CONTAINER_NAME_PREFIX="k3d-${REGISTRY_NAME}"
 NETWORK_NAME="k3d-${CLUSTER_NAME}"
+K3D_BIN="/usr/local/bin/k3d"
 
 log() {
   echo "[delete-lc.sh] $1"
 }
 
-delete_cluster() {
-  if k3d cluster list | grep -q "^${CLUSTER_NAME}\b"; then
-    log "Deleting k3d cluster ${CLUSTER_NAME}..."
-    k3d cluster delete "${CLUSTER_NAME}" || true
+delete_cluster_and_registry() {
+  log "Attempting to delete k3d clusters and registries..."
+  k3d cluster list --no-headers | awk '{print $1}' | xargs -r -n1 k3d cluster delete || true
+  k3d registry list --no-headers | awk '{print $1}' | xargs -r -n1 k3d registry delete || true
+}
+
+delete_k3d_containers() {
+  log "Removing all Docker containers related to k3d..."
+  docker ps -a --filter "name=k3d-" --format '{{.ID}}' | xargs -r docker rm -f || true
+}
+
+delete_port_bound_registry() {
+  log "Checking for containers bound to port ${REGISTRY_PORT}..."
+  docker ps -q --filter "publish=${REGISTRY_PORT}" | xargs -r docker rm -f || true
+}
+
+delete_k3d_volumes() {
+  log "Removing all Docker volumes related to k3d..."
+  docker volume ls --format '{{.Name}}' | grep '^k3d-' | xargs -r docker volume rm -f || true
+}
+
+delete_k3d_networks() {
+  log "Removing all Docker networks related to k3d..."
+  docker network ls --format '{{.Name}}' | grep '^k3d-' | xargs -r docker network rm || true
+}
+
+delete_k3d_binary() {
+  if [[ -f "${K3D_BIN}" ]]; then
+    log "Removing k3d binary at ${K3D_BIN}..."
+    sudo rm -f "${K3D_BIN}"
+    log "k3d binary deleted."
   else
-    log "No k3d cluster named ${CLUSTER_NAME} found."
+    log "k3d binary already removed or never installed."
   fi
 }
 
-delete_registry() {
-  if k3d registry list | grep -q "^${REGISTRY_NAME}\b"; then
-    log "Deleting k3d-managed registry ${REGISTRY_NAME}..."
-    k3d registry delete "${REGISTRY_NAME}" || true
-  else
-    log "No k3d-managed registry ${REGISTRY_NAME} found."
+final_check() {
+  local fails=0
+
+  if command -v k3d >/dev/null 2>&1; then
+    log "ERROR: k3d still present in PATH."
+    ((fails++))
   fi
 
-  # Remove any remaining Docker containers with registry name prefix
-  local containers
-  containers=$(docker ps -a --filter "name=${REGISTRY_CONTAINER_NAME_PREFIX}" --format '{{.ID}} {{.Names}}')
-  if [[ -n "$containers" ]]; then
-    log "Removing lingering Docker containers related to registry:"
-    echo "$containers"
-    docker rm -f $(echo "$containers" | awk '{print $1}') || true
-  else
-    log "No lingering registry containers found."
+  if docker ps -a | grep -q 'k3d-'; then
+    log "ERROR: Residual containers found."
+    ((fails++))
   fi
 
-  # Kill any containers binding host port 5000
-  local port_containers
-  port_containers=$(docker ps -q --filter "publish=${REGISTRY_PORT}")
-  if [[ -n "$port_containers" ]]; then
-    log "Force-removing containers binding to host port ${REGISTRY_PORT}..."
-    docker rm -f $port_containers || true
+  if docker volume ls | grep -q 'k3d-'; then
+    log "ERROR: Residual volumes found."
+    ((fails++))
   fi
-}
 
-delete_network() {
-  if docker network ls --format '{{.Name}}' | grep -q "^${NETWORK_NAME}$"; then
-    log "Removing k3d network ${NETWORK_NAME}..."
-    docker network rm "${NETWORK_NAME}" || true
-  else
-    log "No k3d network ${NETWORK_NAME} found."
+  if docker network ls | grep -q 'k3d-'; then
+    log "ERROR: Residual networks found."
+    ((fails++))
   fi
-}
 
-delete_volumes() {
-  # Remove volumes created by k3d cluster
-  local volumes
-  volumes=$(docker volume ls --filter "name=k3d-${CLUSTER_NAME}" --format '{{.Name}}')
-  if [[ -n "$volumes" ]]; then
-    log "Removing Docker volumes related to cluster:"
-    echo "$volumes"
-    docker volume rm $volumes || true
-  else
-    log "No Docker volumes found for ${CLUSTER_NAME}."
-  fi
-}
-
-check_no_leftovers() {
-  local leftovers
-
-  leftovers=$(docker ps -a --filter "name=${REGISTRY_CONTAINER_NAME_PREFIX}" --format '{{.Names}}')
-  if [[ -n "$leftovers" ]]; then
-    log "ERROR: Some registry containers still exist:"
-    echo "$leftovers"
+  if [[ "$fails" -gt 0 ]]; then
+    log "Destructive cleanup incomplete. ${fails} resource types remain."
     exit 1
+  else
+    log " All k3d-related binaries and resources have been permanently removed."
   fi
-
-  if k3d cluster list | grep -q "^${CLUSTER_NAME}\b"; then
-    log "ERROR: Cluster ${CLUSTER_NAME} still listed in k3d."
-    exit 1
-  fi
-
-  if k3d registry list | grep -q "^${REGISTRY_NAME}\b"; then
-    log "ERROR: Registry ${REGISTRY_NAME} still listed in k3d."
-    exit 1
-  fi
-
-  log "All k3d-related resources cleaned up successfully."
 }
 
 main() {
-  log "Starting full k3d cleanup for cluster: ${CLUSTER_NAME}"
-  delete_cluster
-  delete_registry
-  delete_network
-  delete_volumes
-  check_no_leftovers
-  log "Cleanup complete."
+  log "=== Starting FULL DESTRUCTIVE cleanup for k3d environment ==="
+  delete_cluster_and_registry
+  delete_k3d_containers
+  delete_port_bound_registry
+  delete_k3d_volumes
+  delete_k3d_networks
+  delete_k3d_binary
+  final_check
+  log "=== Full cleanup complete. Local k3d environment wiped ==="
 }
 
 main

@@ -1,72 +1,55 @@
-#!/usr/bin/env bash
-
+#!/bin/bash
 set -euo pipefail
+IFS=$'\n\t'
 
-K3D_VERSION="v5.4.8"
-CLUSTER_NAME="autoopsscaler-dev"
-REGISTRY_NAME="k3d-${CLUSTER_NAME}-registry"
-REGISTRY_PORT="5000"
+echo "[lc.sh] === Starting dev cluster setup ==="
 
-log() {
-  echo "[lc.sh] $1"
-}
+# Check Docker
+if ! command -v docker &>/dev/null; then
+  echo >&2 "[lc.sh] ERROR: Docker is not installed or not in PATH"
+  exit 1
+fi
+echo "[lc.sh] Docker is OK"
 
-prompt_worker_nodes() {
-  local default_nodes=2
-  read -rp "[lc.sh] Enter number of worker nodes [default: ${default_nodes}]: " WORKER_NODES
-  if [[ -z "${WORKER_NODES}" ]]; then
-    WORKER_NODES=${default_nodes}
-  fi
-  if ! [[ "$WORKER_NODES" =~ ^[0-9]+$ ]]; then
-    echo "[lc.sh] Invalid input. Please enter a numeric value."
-    exit 1
-  fi
-}
+# Install k3d if missing
+if ! command -v k3d &>/dev/null; then
+  echo "[lc.sh] Installing k3d v5.4.8..."
+  curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | TAG=v5.4.8 bash
+else
+  echo "[lc.sh] k3d already installed: $(k3d version)"
+fi
 
-ensure_k3d_installed() {
-  if ! command -v k3d >/dev/null 2>&1; then
-    log "k3d not found. Installing version ${K3D_VERSION}..."
-    TMP_BIN="/tmp/k3d"
-    curl -sSfL "https://github.com/k3d-io/k3d/releases/download/${K3D_VERSION}/k3d-linux-amd64" -o "${TMP_BIN}"
-    chmod +x "${TMP_BIN}"
-    sudo mv "${TMP_BIN}" /usr/local/bin/k3d
-    log "Installed k3d: $(k3d version)"
-  else
-    log "k3d already installed: $(k3d version)"
-  fi
-}
+# Cleanup existing cluster
+if k3d cluster list | grep -q 'autoopsscaler-dev'; then
+  echo "[lc.sh] Removing existing cluster 'autoopsscaler-dev'..."
+  k3d cluster delete autoopsscaler-dev || true
+fi
 
-create_registry() {
-  if k3d registry list | grep -q "^${REGISTRY_NAME}\b"; then
-    log "Registry ${REGISTRY_NAME} already exists. Skipping creation."
-  else
-    log "Creating registry ${REGISTRY_NAME} on port ${REGISTRY_PORT}..."
-    k3d registry create "${REGISTRY_NAME}" --port "${REGISTRY_PORT}"
-    log "Registry created."
-  fi
-}
+# Create local registry if not exists
+REGISTRY_NAME="k3d-autoopsscaler-dev-registry"
+if ! docker inspect "$REGISTRY_NAME" &>/dev/null; then
+  echo "[lc.sh] Creating registry '$REGISTRY_NAME' on port 5000..."
+  k3d registry create "$REGISTRY_NAME" --port 5000
+else
+  echo "[lc.sh] Registry '$REGISTRY_NAME' already exists"
+fi
+echo "[lc.sh] Registry ready"
 
-create_cluster() {
-  if k3d cluster list | grep -q "^${CLUSTER_NAME}\b"; then
-    log "Cluster ${CLUSTER_NAME} already exists. Skipping creation."
-  else
-    log "Creating cluster ${CLUSTER_NAME} with ${WORKER_NODES} worker node(s)..."
-    k3d cluster create "${CLUSTER_NAME}" \
-      --agents "${WORKER_NODES}" \
-      --registry-use "${REGISTRY_NAME}:${REGISTRY_PORT}" \
-      --port "80:80@loadbalancer" \
-      --port "443:443@loadbalancer"
-    log "Cluster ${CLUSTER_NAME} created successfully."
-  fi
-}
+# Create cluster with 1 server and 1 agent
+echo "[lc.sh] Creating cluster 'autoopsscaler-dev' with 1 server + 1 agent..."
+k3d cluster create autoopsscaler-dev \
+  --agents 1 \
+  --servers 1 \
+  --registry-use "$REGISTRY_NAME:5000" \
+  --port "80:80@loadbalancer" \
+  --port "443:443@loadbalancer"
 
-main() {
-  log "Starting cluster setup..."
-  prompt_worker_nodes
-  ensure_k3d_installed
-  create_registry
-  create_cluster
-  log "Cluster setup complete."
-}
+echo "[lc.sh] Cluster created"
 
-main
+# Final check
+if ! kubectl cluster-info &>/dev/null; then
+  echo >&2 "[lc.sh] ERROR: kubectl cannot access the cluster context!"
+  exit 1
+fi
+
+echo "[lc.sh] Dev cluster ready with 1 master + 1 worker"
