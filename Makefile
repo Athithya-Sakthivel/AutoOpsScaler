@@ -35,13 +35,13 @@ push:
 	
 
 lc:
-	chmod +x infra/dev/lc.sh && bash infra/dev/lc.sh
+	chmod +x infra/staging/lc.sh && bash infra/staging/lc.sh
 
 delete-lc:
-	chmod +x infra/dev/delete-lc.sh && bash infra/dev/delete-lc.sh
+	chmod +x infra/staging/delete-lc.sh && bash infra/staging/delete-lc.sh
 
 lc-status:
-	chmod +x infra/dev/lc-status.sh && bash infra/dev/lc-status.sh
+	chmod +x infra/staging/lc-status.sh && bash infra/staging/lc-status.sh
 	
 rebase-continue:
 	git add .

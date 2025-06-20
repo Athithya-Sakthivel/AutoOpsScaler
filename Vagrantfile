@@ -12,6 +12,9 @@ Vagrant.configure("2") do |config|
   # k3d Load Balancer
   config.vm.network "forwarded_port", guest: 80, host: 80, auto_correct: true # k3d HTTP
   config.vm.network "forwarded_port", guest: 443, host: 443, auto_correct: true # k3d HTTPS
+  
+  # k3d Registry for local image pushes 
+  config.vm.network "forwarded_port", guest: 5000, host: 5000, auto_correct: true # Local Registry
 
   # Prometheus
   config.vm.network "forwarded_port", guest: 9090, host: 9090, auto_correct: true # Prometheus
