@@ -1,49 +1,55 @@
-#!/bin/bash
-# infra/dev/install-k3d.sh
-# Idempotent script to install stable k3d (v5.4.8) on Ubuntu 22.04
+#!/usr/bin/env bash
 
 set -euo pipefail
 
 K3D_VERSION="v5.4.8"
-INSTALL_PATH="/usr/local/bin/k3d"
+CLUSTER_NAME="autoopsscaler-dev"
+REGISTRY_NAME="k3d-${CLUSTER_NAME}-registry"
+REGISTRY_PORT="5000"
 
-echo "Checking if k3d is installed..."
+log() {
+  echo "[lc.sh] $1"
+}
 
-if command -v k3d &>/dev/null; then
-    INSTALLED_VERSION=$(k3d version --short | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+')
-    if [[ "$INSTALLED_VERSION" == "$K3D_VERSION" ]]; then
-        echo "k3d $K3D_VERSION is already installed. Skipping installation."
-        exit 0
-    else
-        echo "Different k3d version detected: $INSTALLED_VERSION. Reinstalling $K3D_VERSION..."
-    fi
-else
-    echo "k3d not found. Installing version $K3D_VERSION..."
-fi
+ensure_k3d_installed() {
+  if ! command -v k3d >/dev/null 2>&1; then
+    log "k3d not found. Installing version ${K3D_VERSION}..."
+    curl -sSfL "https://github.com/k3d-io/k3d/releases/download/${K3D_VERSION}/k3d-linux-amd64" -o /usr/local/bin/k3d
+    chmod +x /usr/local/bin/k3d
+    log "Installed k3d: $(k3d version)"
+  else
+    log "k3d already installed: $(k3d version)"
+  fi
+}
 
-# Download k3d binary
-curl -Lo /tmp/k3d https://github.com/k3d-io/k3d/releases/download/${K3D_VERSION}/k3d-linux-amd64
+create_registry() {
+  if k3d registry list | grep -q "^${REGISTRY_NAME}\b"; then
+    log "Registry ${REGISTRY_NAME} already exists. Skipping creation."
+  else
+    log "Creating registry ${REGISTRY_NAME} on port ${REGISTRY_PORT}..."
+    k3d registry create "${REGISTRY_NAME}" --port "${REGISTRY_PORT}"
+  fi
+}
 
-# Validate download
-if [[ ! -s /tmp/k3d ]]; then
-    echo "Failed to download k3d binary." >&2
-    exit 1
-fi
+create_cluster() {
+  if k3d cluster list | grep -q "^${CLUSTER_NAME}\b"; then
+    log "Cluster ${CLUSTER_NAME} already exists. Skipping creation."
+  else
+    log "Creating cluster ${CLUSTER_NAME} with registry integration..."
+    k3d cluster create "${CLUSTER_NAME}" \
+      --registry-use "${REGISTRY_NAME}:${REGISTRY_PORT}" \
+      --port "80:80@loadbalancer" \
+      --port "443:443@loadbalancer"
+    log "Cluster ${CLUSTER_NAME} created successfully."
+  fi
+}
 
-# Install binary
-chmod +x /tmp/k3d
-sudo mv /tmp/k3d $INSTALL_PATH
+main() {
+  log "Starting cluster setup..."
+  ensure_k3d_installed
+  create_registry
+  create_cluster
+  log "Cluster setup complete."
+}
 
-# Verify installation
-if ! command -v k3d &>/dev/null; then
-    echo "k3d installation failed." >&2
-    exit 1
-fi
-
-INSTALLED_VERSION=$(k3d version --short | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+')
-if [[ "$INSTALLED_VERSION" != "$K3D_VERSION" ]]; then
-    echo "Installed k3d version ($INSTALLED_VERSION) does not match expected ($K3D_VERSION)." >&2
-    exit 1
-fi
-
-echo "k3d $K3D_VERSION installed successfully."
+main

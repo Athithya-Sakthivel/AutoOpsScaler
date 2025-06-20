@@ -35,14 +35,14 @@ push:
 	
 
 lc:
-	chmod +x base_infra/local_cluster.sh && sudo bash base_infra/local_cluster.sh
-
-lc-status:
-	k3s kubectl get nodes
+	chmod +x infra/dev/lc.sh && bash infra/dev/lc.sh
 
 delete-lc:
-	chmod +x base_infra/delete_dev_cluster.sh && sudo bash base_infra/delete_dev_cluster.sh
+	chmod +x infra/dev/delete-lc.sh && bash infra/dev/delete-lc.sh
 
+lc-status:
+	chmod +x infra/dev/lc-status.sh && bash infra/dev/lc-status.sh
+	
 rebase-continue:
 	git add .
 	git rebase --continue
