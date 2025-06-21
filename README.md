@@ -250,7 +250,7 @@ cd $HOME && git config --global core.autocrlf false && git clone https://github.
 
 
 
-# Install the neccessary cli tools, py packages and create a local k3d cluster
+### Install the neccessary cli tools, py packages and create a local k3d cluster
 
 ```
 make install && make lc
