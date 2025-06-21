@@ -1,4 +1,4 @@
-.PHONY: install login force-pull pull push lc lc-status delete-lc rebase-continue tree clean s3 iam host-qdrant status terraform-backend-s3
+.PHONY: install login force-pull pull push lc lc-status delete-lc rebase-continue tree clean s3 iam host-qdrant status terraform-backend-s3 detete-gp2
 
 SHELL := /bin/bash
 
@@ -62,6 +62,13 @@ status:
 	kubectl get nodes --no-headers | grep -v NotReady
 	kubectl get pods -A --field-selector=status.phase!=Running
 
+gp2-volumes:
+	chmod +x scripts/create_staging_ebs_volumes.sh && bash scripts/create_staging_ebs_volumes.sh
+
+delete-gp2-volumes:
+	chmod +x scripts/delete_ebs_gp2.sh && bash scripts/delete_ebs_gp2.sh
+
+
 host-qdrant:
 	bash -c '\
 		. .env && \
@@ -69,5 +76,8 @@ host-qdrant:
 		./scripts/qdrant.sh \
 	'
 
+
 terraform-backend-s3:
 	python3 infra/terraform_backend_s3.py
+
+
