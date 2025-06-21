@@ -12,6 +12,10 @@ force-pull:
 	git stash drop || true                  # Drop auto-stash if it was created
 	git status                              # Show current state
 
+rebase-continue:
+	git add .
+	git rebase --continue
+
 pull:
 	@if [ -d .git/rebase-merge ]; then \
 		echo "[!] Rebase already in progress. Run 'make rebase-continue' or 'make rebase-abort'"; \
@@ -19,6 +23,12 @@ pull:
 	fi
 	git fetch origin
 	git rebase origin/main
+
+push:
+	git add .
+	git commit -m "update"
+	git push
+
 
 install:
 	chmod +x scripts/install.sh
@@ -28,11 +38,13 @@ install:
 	pip install --upgrade pip && \
 	pip install -r requirements.txt
 
-push:
-	git add .
-	git commit -m "update"
-	git push
+tree:
+	\tree -a --prune -I '.git|.vagrant|__pycache__|.pulumi|.mypy_cache|.pytest_cache|.venv|.vscode|storage' --dirsfirst -L 5
+
+clean:
+	find . -type d -name '__pycache__' -exec rm -rf {} + && find . -type f -name '*.py[co]' -delete
 	
+
 lc:
 	chmod +x infra/staging/lc.sh && bash infra/staging/lc.sh
 
@@ -42,24 +54,18 @@ delete-lc:
 lc-status:
 	chmod +x infra/staging/lc-status.sh && bash infra/staging/lc-status.sh
 	
-rebase-continue:
-	git add .
-	git rebase --continue
+status:
+	k3d cluster list | grep autoopsscaler-staging
+	kubectl get nodes --no-headers | grep -v NotReady
+	kubectl get pods -A --field-selector=status.phase!=Running
+	
 
-tree:
-	\tree -a --prune -I '.git|.vagrant|__pycache__|.pulumi|.mypy_cache|.pytest_cache|.venv|.vscode|storage' --dirsfirst -L 5
 
-clean:
-	find . -type d -name '__pycache__' -exec rm -rf {} + && find . -type f -name '*.py[co]' -delete
+
+
 
 terraform-backend-s3:
 	python3 infra/terraform_backend_s3.py
 
 iam-bootstrap:
 	chmod +x scripts/iam_bootstrap.sh && bash scripts/iam_bootstrap.sh
-
-status:
-	k3d cluster list | grep autoopsscaler-staging
-	kubectl get nodes --no-headers | grep -v NotReady
-	kubectl get pods -A --field-selector=status.phase!=Running
-	

@@ -58,44 +58,38 @@ AutoOpsScaler/
 │   └── Dockerfile                      # Lambda-compatible container (for ECR-based deployment)
 │
 ├── flux/
-│   ├── base/
-│   │   ├── apps/
-│   │   │   ├── qdrant.yml              # Qdrant StatefulSet, PVC, and Service
-│   │   │   ├── ray_job.yml             # RayJob (batch inference workload)
-│   │   │   ├── ray_service.yml         # RayService (persistent online service)
-│   │   │   ├── prometheus.yml          # Prometheus stack (Prometheus, Grafana, Alertmanager)
-│   │   │   └── kustomization.yml       # Groups all app manifests
-│   │   │
-│   │   ├── config/
-│   │   │   ├── configmap.yml           # Global ConfigMap
-│   │   │   ├── ingress.yml             # Traefik IngressRoute and Middleware
-│   │   │   ├── k8s-secrets.yml         # Kubernetes Secret resources
-│   │   │   ├── namespace.yml           # dev/prod Namespace definitions
-│   │   │   └── kustomization.yml       # Groups all config resources
-│   │   │
-│   │   ├── infra/
-│   │   │   ├── karpenter.cpu.yml       # Karpenter provisioner for CPU-optimized pods
-│   │   │   ├── karpenter.gpu.yml       # Karpenter provisioner for GPU workloads
-│   │   │   ├── zalando/
-│   │   │   │   ├── operator.yml        # Zalando Postgres Operator Deployment
-│   │   │   │   ├── rbac.yml            # ServiceAccount, Role, RoleBinding
-│   │   │   │   └── cluster.yml         # PostgresCluster CR (acid.zalan.do/v1)
-│   │   │   └── kustomization.yml       # Groups all infra manifests
-│   │   │
-│   │   └── kustomization.yml           # Flux base root: includes apps/, config/, infra/
+│   └── base/
+│   |   ├── apps/
+│   |   │   ├── kustomization.yml       # Composes all app-level workloads like Ray, Prometheus, Qdrant
+│   |   │   ├── prometheus.yml          # Deploys Prometheus monitoring components
+│   |   │   ├── ray_job.yml             # Defines RayJob CRD for distributed task execution
+│   |   │   ├── ray_service.yml         # Defines RayService CRD for persistent Ray endpoints
+│   |   ├── config/
+|   │   |   ├── configmap.yml           # Application-level non-secret configuration variables
+│   |   │   ├── ingress.yml             # Ingress rules for routing external traffic to services
+│   |   │   ├── k8s-secrets.yml         # K8s secrets for sensitive environment or service credentials
+│   |   │   ├── kustomization.yml       # Composes all config-level resources like ingress, secrets
+│   |   │   └── namespace.yml           # Declares the shared Kubernetes namespace for workloads
+│   |   ├── infra/
+│   |   │   ├── karpenter.cpu.yml       # Karpenter provisioning profile for CPU node pools
+│   |   │   ├── karpenter.gpu.yml       # Karpenter provisioning profile for GPU-enabled node pools
+│   |   │   ├── kustomization.yml       # Composes infra-level components like Karpenter, Qdrant, Zalando
+│   |   │   ├── qdrant/
+│   |   │   │   ├── deployment.yml      # Deploys Qdrant vector DB as a StatefulSet with persistent volume
+│   |   │   │   ├── service.yml         # Exposes Qdrant over internal ClusterIP for pipeline access
+│   |   │   │   ├── pvc.yml             # Defines persistent volume claim for Qdrant data storage
+│   |   │   │   └── kustomization.yml   # Includes Qdrant's deployment, service, and storage manifests
+│   |   │   └── zalando/
+│   |   │       ├── cluster.yml         # Defines a Zalando Postgres cluster with DB, user, and credentials
+│   |   │       ├── operator.yml        # Installs the Zalando Postgres operator controller into the cluster
+│   |   │       └── rbac.yml            # Grants the Zalando operator required cluster-level permissions
+│   |   └── kustomization.yml           # Top-level composition entry for base (apps, config, infra)
 │   |
 │   └── overlays/
 │       ├── dev/
 │       │   └── kustomization.yml       # Kustomize overlays for dev environment
-│       │
 │       └── prod/
 │           └── kustomization.yml       # Kustomize overlays for prod environment
-|
-|── utils/                              # Shared utility functions and helpers
-|   ├── __init__.py                     # Marks the utils directory as a Python package
-|   ├── deduplicator.py                 # Implements hashlib based deduplication
-|   ├── logger.py                       # Centralized structured logging setup
-|   └── s3_util.py                      # Helper functions for S3 upload/download with boto3
 |
 ├── data_pipeline
 │   ├── data_pipeline_config.yml        # central ELT & embedding pipeline settings
@@ -263,3 +257,4 @@ make install && \
 source .venv/bin/activate && \
 make lc
 ```
+
