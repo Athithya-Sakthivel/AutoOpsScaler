@@ -237,7 +237,7 @@ A full Linux setup is required (do **not** use Docker Desktop, WSL,devcontainers
 ```bash
 cd $HOME && git config --global core.autocrlf false && git clone https://github.com/Athithya-Sakthivel/AutoOpsScaler.git && cd AutoOpsScaler && vagrant up && bash scripts/ssh.sh
 ```
-> The default configs are RAM = 11GB, vcpus=8, no gpu override it in the Vagrantfile if needed 
+> The default configs are RAM = 11GB, vcpus=8 and no gpu , override it in the Vagrantfile if needed 
 ---
 
 ## **Important: VM Lifecycle**
