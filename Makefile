@@ -64,8 +64,10 @@ status:
 
 
 
+
+
+
+
 terraform-backend-s3:
 	python3 infra/terraform_backend_s3.py
 
-iam-bootstrap:
-	chmod +x scripts/iam_bootstrap.sh && bash scripts/iam_bootstrap.sh
