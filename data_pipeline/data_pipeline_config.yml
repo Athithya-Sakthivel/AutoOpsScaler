@@ -1,1 +1,166 @@
-# Path: indexing/indexing_config.yml
+# Path: data_pipeline/data_pipeline_config.yml
+
+global:
+  staging_base_dir: "/mnt/ebs/tmp/"
+  default_dedup_algo: "sha256"
+  logging_level: "INFO"
+  aws_region: "${env.AWS_REGION}"
+  max_parallel_tasks: 4
+
+
+extract_load:
+  enable: true  
+
+  staging:
+    local_tmp_dir: "/mnt/ebs/tmp/extract_load/"
+
+  modules:
+
+    web_scraper:
+      enable: false
+      targets:
+        - domain: "example.com"
+          start_urls:
+            - "https://example.com/datasets"
+          max_depth: 2
+        - domain: "anotherdomain.org"
+          start_urls:
+            - "https://anotherdomain.org/data"
+          max_depth: 3
+      crawler_settings:
+        user_agent: "AutoOpsScalerBot/1.0"
+        use_playwright: true
+        rate_limit_delay_sec: 2
+      staging_dir: "${extract_load.staging.local_tmp_dir}scraped/"
+      destination:
+        s3_bucket: "${extract_load.output.s3_bucket}"
+        s3_prefix: "${extract_load.output.s3_prefix_base}scraped/"
+
+    mq_consumer:
+      enable: false
+      type: "redpanda"
+      brokers: "${env.REDPANDA_BROKERS}"   
+      topic: "documents"
+      group_id: "autoopsscaler-extract"
+      staging_dir: "${extract_load.staging.local_tmp_dir}mq/"
+      batch_size: 100
+      timeout_ms: 5000
+
+    cloud_drive_loader:
+      enable: false
+
+      gdrive:
+        enable: false
+        folder_id: "${env.GDRIVE_FOLDER_ID}"
+        client_id: "${env.GDRIVE_CLIENT_ID}"
+        client_secret: "${env.GDRIVE_CLIENT_SECRET}"
+        refresh_token: "${env.GDRIVE_REFRESH_TOKEN}"
+        staging_dir: "${extract_load.staging.local_tmp_dir}cloud_drive/gdrive/"
+
+      onedrive:
+        enable: false
+        folder_id: "${env.ONEDRIVE_FOLDER_ID}"
+        client_id: "${env.ONEDRIVE_CLIENT_ID}"
+        client_secret: "${env.ONEDRIVE_CLIENT_SECRET}"
+        refresh_token: "${env.ONEDRIVE_REFRESH_TOKEN}"
+        staging_dir: "${extract_load.staging.local_tmp_dir}cloud_drive/onedrive/"
+
+      dropbox:
+        enable: false
+        folder_path: "${env.DROPBOX_FOLDER_PATH}"
+        app_key: "${env.DROPBOX_APP_KEY}"
+        app_secret: "${env.DROPBOX_APP_SECRET}"
+        refresh_token: "${env.DROPBOX_REFRESH_TOKEN}"
+        staging_dir: "${extract_load.staging.local_tmp_dir}cloud_drive/dropbox/"
+
+      box:
+        enable: false
+        folder_id: "${env.BOX_FOLDER_ID}"
+        client_id: "${env.BOX_CLIENT_ID}"
+        client_secret: "${env.BOX_CLIENT_SECRET}"
+        developer_token: "${env.BOX_DEVELOPER_TOKEN}"
+        staging_dir: "${extract_load.staging.local_tmp_dir}cloud_drive/box/"
+
+  output:
+    s3_bucket: "${env.AWS_S3_BUCKET_NAME}"
+    s3_prefix_base: "data/raw/"
+    upload:
+      enable: true
+      source_dir: "${extract_load.staging.local_tmp_dir}final_upload/"
+      overwrite: false
+      retry:
+        count: 3
+        backoff_sec: 5
+
+
+
+
+data_processing:
+  enable: true
+  input:
+    s3_bucket: "${extract_load.output.s3_bucket}"
+    s3_prefix_base: "${extract_load.output.s3_prefix_base}"
+  modules:
+    doc_parser:
+      enable: true
+      parser: "unstructured.io"
+      formats: []
+      destination_dir: "${global.staging_base_dir}data_processing/parsed/"
+      tracing: true
+
+    html_parser:
+      enable: true
+      parser: "trafilatura"
+      destination_dir: "${global.staging_base_dir}data_processing/html_parsed/"
+
+    filters:
+      enable: true
+      noise_threshold: 0.05
+      retention_stats: true
+      destination_dir: "${global.staging_base_dir}data_processing/filtered/"
+
+    format_normalizer:
+      enable: true
+      normalize_metadata: true
+      log_normalization: true
+      destination_dir: "${global.staging_base_dir}data_processing/normalized/"
+
+    chunker_llamaindex:
+      enable: true
+      chunk_size: 2048
+      overlap: 128
+      destination_dir: "${global.staging_base_dir}data_processing/chunked/"
+
+  output:
+    s3_bucket: "${extract_load.output.s3_bucket}"
+    s3_prefix: "data/processed/"
+
+
+
+
+embedding:
+  enable: true
+  force_cpu: true
+  input:
+    local_dir: "${global.staging_base_dir}data_processing/chunked/"
+  modules:
+    batch_embed:
+      enable: true
+      model_name: "sentence-transformers/all-MiniLM-L6-v2"
+      source_dir: "${embedding.input.local_dir}"
+      destination_dir: "${global.staging_base_dir}embedding/embedded/"
+      max_batch_size: 64
+
+    embed_to_qdrant:
+      enable: true
+      source_dir: "${global.staging_base_dir}embedding/embedded/"
+      qdrant_url: "${env.QDRANT_URL}"
+      qdrant_collection: "autoopsscaler_embeddings"
+      vector_size: 384
+      batch_size: 128
+
+    insert_metadata:
+      enable: true
+      source_dir: "${global.staging_base_dir}embedding/embedded/"
+      postgres_url: "${env.POSTGRES_URL}"
+      table: "document_metadata"
