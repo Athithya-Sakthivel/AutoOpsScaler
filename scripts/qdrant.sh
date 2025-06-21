@@ -3,10 +3,14 @@
 
 set -euo pipefail
 
+export $(grep -v '^#' .env | xargs)
+
+
 if [[ -z "${AWS_REGION:-}" ]]; then
   echo "Error: AWS_REGION is not set in the environment."
   exit 1
 fi
+
 
 QDRANT_EBS_AZ=$(aws ec2 describe-availability-zones \
   --region "$AWS_REGION" \
