@@ -250,11 +250,9 @@ cd $HOME && git config --global core.autocrlf false && git clone https://github.
 
 
 
-# Install the neccessary tools and create a local k3d cluster
+# Install the neccessary cli tools, py packages and create a local k3d cluster
 
 ```
-make install && \
-source .venv/bin/activate && \
-make lc
+make install && make lc
 ```
 
