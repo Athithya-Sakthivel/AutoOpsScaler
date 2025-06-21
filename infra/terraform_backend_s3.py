@@ -1,14 +1,11 @@
 """
-utils/create_s3_bucket_structure.py
+utils/create_s3_backend_bucket.py
 
-Creates a secure, uniquely-named S3 bucket with:
+Creates a secure, uniquely-named S3 bucket for Terraform backend with:
 - Versioning
 - Blocked public access
-- Initial folder structure with placeholder files:
-    - data/raw/<timestamp>/
-    - terraform/
-
-Persists the Terraform backend URL as `TF_BACKEND_URL=s3://<bucket>` into `.env` file in project root.
+- A terraform/ folder with placeholder
+- Persists TF_BACKEND_URL=s3://<bucket> into .env
 """
 
 import boto3
@@ -16,26 +13,21 @@ import botocore
 import logging
 import string
 import random
-from datetime import datetime
 from pathlib import Path
 
-# === Constants ===
-BASE_BUCKET_NAME = "autoopsscaler-bucket"
+BASE_BUCKET_NAME = "autoopsscaler-tf-backend"
 PROJECT_ROOT = Path("/vagrant")
 ENV_FILE = PROJECT_ROOT / ".env"
 PLACEHOLDER_FILENAME = ".keep"
 PLACEHOLDER_CONTENT = "This file ensures the folder exists in S3.\n"
 
-# === Setup logging ===
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
-logger = logging.getLogger("s3_setup")
+logger = logging.getLogger("tf_backend_s3_setup")
 
-# === Generate unique bucket name ===
 def generate_bucket_name() -> str:
     suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
     return f"{BASE_BUCKET_NAME}-{suffix}"
 
-# === AWS region ===
 session = boto3.session.Session()
 region = session.region_name
 if not region:
@@ -43,21 +35,12 @@ if not region:
 
 s3 = session.client("s3")
 
-# === Ensure folder structure ===
-TIMESTAMP = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
-FOLDERS_TO_CREATE = [
-    f"data/raw/{TIMESTAMP}/",
-    "terraform/"
-]
-
-# === Create local placeholder file ===
 tmp_dir = PROJECT_ROOT / "tmp"
 tmp_dir.mkdir(parents=True, exist_ok=True)
 placeholder_path = tmp_dir / PLACEHOLDER_FILENAME
 if not placeholder_path.exists():
     placeholder_path.write_text(PLACEHOLDER_CONTENT)
 
-# === Create bucket if needed ===
 def ensure_bucket_exists(bucket: str):
     try:
         s3.head_bucket(Bucket=bucket)
@@ -70,19 +53,17 @@ def ensure_bucket_exists(bucket: str):
             if region != "us-east-1":
                 kwargs["CreateBucketConfiguration"] = {"LocationConstraint": region}
             s3.create_bucket(**kwargs)
-            logger.info(f"[SUCCESS] Bucket '{bucket}' created.")
+            logger.info(f"Bucket '{bucket}' created.")
         else:
             raise
 
-# === Enable versioning ===
 def enable_versioning(bucket: str):
     s3.put_bucket_versioning(
         Bucket=bucket,
         VersioningConfiguration={"Status": "Enabled"}
     )
-    logger.info(f"Versioning enabled for bucket '{bucket}'")
+    logger.info(f"Versioning enabled on '{bucket}'")
 
-# === Block all public access ===
 def block_public_access(bucket: str):
     s3.put_public_access_block(
         Bucket=bucket,
@@ -93,19 +74,13 @@ def block_public_access(bucket: str):
             "RestrictPublicBuckets": True
         }
     )
-    logger.info(f"Public access fully blocked on bucket '{bucket}'")
+    logger.info(f"Public access blocked on '{bucket}'")
 
-# === Upload placeholder ===
 def upload_placeholder(bucket: str, folder: str, placeholder_file: Path):
     key = folder.rstrip("/") + "/" + placeholder_file.name
-    try:
-        s3.upload_file(str(placeholder_file), bucket, key)
-        logger.info(f"[OK] Created folder '{folder}' with placeholder.")
-    except Exception as e:
-        logger.error(f"Failed to upload to '{key}': {e}")
-        raise
+    s3.upload_file(str(placeholder_file), bucket, key)
+    logger.info(f"Created folder '{folder}' with placeholder.")
 
-# === Save backend to .env ===
 def write_backend_env(bucket: str):
     backend_url = f"s3://{bucket}"
     lines = []
@@ -114,19 +89,17 @@ def write_backend_env(bucket: str):
         lines = [line for line in lines if not line.startswith("TF_BACKEND_URL=")]
     lines.append(f"TF_BACKEND_URL={backend_url}")
     ENV_FILE.write_text("\n".join(lines) + "\n")
-    logger.info(f"[ENV] Written backend URL to .env: {backend_url}")
+    logger.info(f"Written TF_BACKEND_URL to .env: {backend_url}")
 
-# === Main ===
 def main():
     bucket = generate_bucket_name()
     logger.info(f"Provisioning S3 bucket: {bucket}")
     ensure_bucket_exists(bucket)
     enable_versioning(bucket)
     block_public_access(bucket)
-    for folder in FOLDERS_TO_CREATE:
-        upload_placeholder(bucket, folder, placeholder_path)
+    upload_placeholder(bucket, "terraform/", placeholder_path)
     write_backend_env(bucket)
-    logger.info("[DONE] S3 bucket structure provisioned securely for Terraform backend.")
+    logger.info("S3 bucket ready for Terraform backend.")
 
 if __name__ == "__main__":
     main()
