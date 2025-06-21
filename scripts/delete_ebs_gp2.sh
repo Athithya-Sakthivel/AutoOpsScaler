@@ -36,3 +36,7 @@ for volume_id in $(echo "$volumes" | jq -r '.[].ID'); do
 done
 
 echo "[DONE] Successfully deleted all gp2 volumes in $AWS_REGION"
+
+aws ec2 describe-volumes \
+  --query "Volumes[*].{ID:VolumeId,Size:Size,AZ:AvailabilityZone,State:State,Type:VolumeType}" \
+  --output table
