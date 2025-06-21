@@ -26,14 +26,13 @@ install:
 	[ -d .venv ] || python3 -m venv .venv
 	. .venv/bin/activate && \
 	pip install --upgrade pip && \
-	pip install -r data_pipeline/modules/extract_load/requirements.txt
+	pip install -r requirements.txt
 
 push:
 	git add .
 	git commit -m "update"
 	git push
 	
-
 lc:
 	chmod +x infra/staging/lc.sh && bash infra/staging/lc.sh
 
@@ -53,8 +52,14 @@ tree:
 clean:
 	find . -type d -name '__pycache__' -exec rm -rf {} + && find . -type f -name '*.py[co]' -delete
 
-s3:
+terraform-backend-s3:
 	python3 infra/terraform_backend_s3.py
 
 iam-bootstrap:
 	chmod +x scripts/iam_bootstrap.sh && bash scripts/iam_bootstrap.sh
+
+status:
+	k3d cluster list | grep autoopsscaler-staging
+	kubectl get nodes --no-headers | grep -v NotReady
+	kubectl get pods -A --field-selector=status.phase!=Running
+	

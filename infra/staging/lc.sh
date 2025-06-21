@@ -2,7 +2,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-echo "[lc.sh] === Starting dev cluster setup ==="
+echo "[lc.sh] === Starting staging cluster setup ==="
 
 # Check Docker
 if ! command -v docker &>/dev/null; then
@@ -20,13 +20,13 @@ else
 fi
 
 # Cleanup existing cluster
-if k3d cluster list | grep -q 'autoopsscaler-dev'; then
-  echo "[lc.sh] Removing existing cluster 'autoopsscaler-dev'..."
-  k3d cluster delete autoopsscaler-dev || true
+if k3d cluster list | grep -q 'autoopsscaler-staging'; then
+  echo "[lc.sh] Removing existing cluster 'autoopsscaler-staging'..."
+  k3d cluster delete autoopsscaler-staging || true
 fi
 
 # Create local registry if not exists
-REGISTRY_NAME="k3d-autoopsscaler-dev-registry"
+REGISTRY_NAME="k3d-autoopsscaler-staging-registry"
 if ! docker inspect "$REGISTRY_NAME" &>/dev/null; then
   echo "[lc.sh] Creating registry '$REGISTRY_NAME' on port 5000..."
   k3d registry create "$REGISTRY_NAME" --port 5000
@@ -36,8 +36,8 @@ fi
 echo "[lc.sh] Registry ready"
 
 # Create cluster with 1 server and 1 agent
-echo "[lc.sh] Creating cluster 'autoopsscaler-dev' with 1 server + 1 agent..."
-k3d cluster create autoopsscaler-dev \
+echo "[lc.sh] Creating cluster 'autoopsscaler-staging' with 1 server + 1 agent..."
+k3d cluster create autoopsscaler-staging \
   --agents 1 \
   --servers 1 \
   --registry-use "$REGISTRY_NAME:5000" \
@@ -52,4 +52,4 @@ if ! kubectl cluster-info &>/dev/null; then
   exit 1
 fi
 
-echo "[lc.sh] Dev cluster ready with 1 master + 1 worker"
+echo "[lc.sh] staging cluster ready with 1 master + 1 worker"

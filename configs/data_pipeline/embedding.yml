@@ -1,0 +1,27 @@
+
+embedding:
+  enable: true
+  force_cpu: true
+  input:
+    local_dir: "${global.staging_base_dir}data_processing/chunked/"
+  modules:
+    batch_embed:
+      enable: true
+      model_name: "sentence-transformers/all-MiniLM-L6-v2"
+      source_dir: "${embedding.input.local_dir}"
+      destination_dir: "${global.staging_base_dir}embedding/embedded/"
+      max_batch_size: 64
+
+    embed_to_qdrant:
+      enable: true
+      source_dir: "${global.staging_base_dir}embedding/embedded/"
+      qdrant_url: "${env.QDRANT_URL}"
+      qdrant_collection: "autoopsscaler_embeddings"
+      vector_size: 384
+      batch_size: 128
+
+    insert_metadata:
+      enable: true
+      source_dir: "${global.staging_base_dir}embedding/embedded/"
+      postgres_url: "${env.POSTGRES_URL}"
+      table: "document_metadata"

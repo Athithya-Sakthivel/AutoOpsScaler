@@ -1,0 +1,71 @@
+# extract_load_configs.yml
+
+global:
+  staging_base_dir: "/mnt/ebs/tmp/"
+  default_dedup_algo: "sha256"
+  logging_level: "INFO"
+  max_parallel_tasks: 4
+
+extract_load:
+  enable: true
+
+  staging:
+    local_tmp_dir: "/mnt/ebs/tmp/extract_load/"
+
+  modules:
+    web_scraper:
+      enable: false
+      targets:
+        - domain: "example.com"
+          start_urls:
+            - "https://example.com/datasets"
+          max_depth: 2
+        - domain: "anotherdomain.org"
+          start_urls:
+            - "https://anotherdomain.org/data"
+          max_depth: 3
+      crawler_settings:
+        user_agent: "AutoOpsScalerBot/1.0"
+        use_playwright: true
+        rate_limit_delay_sec: 2
+      staging_dir: "/mnt/ebs/tmp/extract_load/scraped/"
+      destination:
+        s3_prefix: "data/raw/scraped/"
+
+    mq_consumer:
+      enable: false
+      type: "redpanda"
+      topic: "documents"
+      group_id: "autoopsscaler-extract"
+      staging_dir: "/mnt/ebs/tmp/extract_load/mq/"
+      batch_size: 100
+      timeout_ms: 5000
+
+    cloud_drive_loader:
+      enable: false
+
+      gdrive:
+        enable: false
+        staging_dir: "/mnt/ebs/tmp/extract_load/cloud_drive/gdrive/"
+
+      onedrive:
+        enable: false
+        staging_dir: "/mnt/ebs/tmp/extract_load/cloud_drive/onedrive/"
+
+      dropbox:
+        enable: false
+        staging_dir: "/mnt/ebs/tmp/extract_load/cloud_drive/dropbox/"
+
+      box:
+        enable: false
+        staging_dir: "/mnt/ebs/tmp/extract_load/cloud_drive/box/"
+
+  output:
+    s3_prefix_base: "data/raw/"
+    upload:
+      enable: true
+      source_dir: "/mnt/ebs/tmp/extract_load/final_upload/"
+      overwrite: false
+      retry:
+        count: 3
+        backoff_sec: 5

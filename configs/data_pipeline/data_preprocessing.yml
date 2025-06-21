@@ -1,0 +1,43 @@
+
+data_processing:
+  enable: true
+  input:
+    s3_bucket: "${extract_load.output.s3_bucket}"
+    s3_prefix_base: "${extract_load.output.s3_prefix_base}"
+  modules:
+    doc_parser:
+      enable: true
+      parser: "unstructured.io"
+      formats: []
+      destination_dir: "${global.staging_base_dir}data_processing/parsed/"
+      tracing: true
+
+    html_parser:
+      enable: true
+      parser: "trafilatura"
+      destination_dir: "${global.staging_base_dir}data_processing/html_parsed/"
+
+    filters:
+      enable: true
+      noise_threshold: 0.05
+      retention_stats: true
+      destination_dir: "${global.staging_base_dir}data_processing/filtered/"
+
+    format_normalizer:
+      enable: true
+      normalize_metadata: true
+      log_normalization: true
+      destination_dir: "${global.staging_base_dir}data_processing/normalized/"
+
+    chunker_llamaindex:
+      enable: true
+      chunk_size: 2048
+      overlap: 128
+      destination_dir: "${global.staging_base_dir}data_processing/chunked/"
+
+  output:
+    s3_bucket: "${extract_load.output.s3_bucket}"
+    s3_prefix: "data/processed/"
+
+
+

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CLUSTER_NAME="autoopsscaler-dev"
+CLUSTER_NAME="autoopsscaler-staging"
 REGISTRY_NAME="k3d-${CLUSTER_NAME}-registry"
 REGISTRY_PORT="5000"
 REGISTRY_CONTAINER_NAME_PREFIX="k3d-${REGISTRY_NAME}"

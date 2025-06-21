@@ -73,6 +73,8 @@ tmp/
 # VS Code, dev containers, editors
 # -----------------------
 .env
+
+
 .devcontainer/.python-version
 .idea/
 *.sublime-project
